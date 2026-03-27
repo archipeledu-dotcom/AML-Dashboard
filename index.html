@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Archipel · Dashboard Marketing</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --teal:#0f6e56;--teal0:#e1f5ee;
+  --amber:#ba7517;--amber0:#faeeda;
+  --coral:#d85a30;--coral0:#faece7;
+  --blue:#185fa5;--blue0:#e6f1fb;
+  --pink:#993556;--pink0:#fbeaf0;
+  --gray:#f5f4f0;--border:#e0ddd6;
+  --txt:#1a1a1a;--muted:#888;--hint:#bbb;
+  --card:#fff;--mono:'Courier New',monospace;--sans:Arial,sans-serif
+}
+body{font-family:var(--sans);background:var(--gray);color:var(--txt);min-height:100vh}
+
+/* ═══ CONFIG ═══ */
+#cfg{position:fixed;inset:0;background:rgba(245,244,240,0.98);z-index:300;display:flex;align-items:center;justify-content:center;padding:20px}
+.cfg-box{background:#fff;border:1px solid var(--border);border-radius:16px;padding:36px 40px;max-width:560px;width:100%}
+.cfg-logo{font-size:10px;font-family:var(--mono);letter-spacing:.2em;color:var(--hint);text-transform:uppercase;margin-bottom:8px}
+.cfg-title{font-size:22px;font-weight:700;margin-bottom:6px}
+.cfg-sub{font-size:12px;font-family:var(--mono);color:var(--muted);line-height:1.7;margin-bottom:24px}
+.cfg-field{margin-bottom:12px}
+.cfg-field label{display:block;font-size:10px;font-family:var(--mono);color:var(--muted);margin-bottom:5px;letter-spacing:.05em;text-transform:uppercase}
+.cfg-field input{width:100%;font-size:13px;font-family:var(--mono);padding:11px 14px;border:1px solid var(--border);border-radius:8px;outline:none;color:var(--txt)}
+.cfg-field input:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(15,110,86,0.08)}
+.cfg-hint{font-size:10px;font-family:var(--mono);color:var(--hint);margin-top:4px;line-height:1.5}
+.cfg-btn{width:100%;font-size:13px;font-family:var(--mono);font-weight:700;padding:13px;border-radius:8px;cursor:pointer;border:none;background:var(--teal);color:var(--teal0);margin-top:8px;transition:.15s}
+.cfg-btn:hover{background:#085041}
+.cfg-btn:disabled{background:var(--border);color:var(--muted);cursor:not-allowed}
+.cfg-err{font-size:11px;font-family:var(--mono);color:var(--coral);margin-top:8px;min-height:16px;line-height:1.5}
+.cfg-demo{font-size:11px;font-family:var(--mono);color:var(--blue);text-align:center;margin-top:12px;cursor:pointer;text-decoration:underline}
+.cfg-sep{height:1px;background:var(--border);margin:20px 0}
+.cfg-saved{background:var(--teal0);border-radius:8px;padding:10px 14px;font-size:11px;font-family:var(--mono);color:var(--teal);margin-bottom:16px;display:none}
+
+/* ═══ NAV ═══ */
+.nav{background:#fff;border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:100}
+.nav-l{display:flex;align-items:center;gap:14px}
+.nav-brand{font-size:10px;letter-spacing:.18em;color:var(--hint);text-transform:uppercase;font-family:var(--mono)}
+.nav-title{font-size:15px;font-weight:700}
+.status{display:flex;align-items:center;gap:5px;font-size:10px;font-family:var(--mono)}
+.sdot{width:7px;height:7px;border-radius:50%}
+.nav-r{display:flex;gap:6px;align-items:center}
+.nbtn{font-size:11px;font-family:var(--mono);padding:6px 14px;border-radius:20px;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--txt);display:flex;align-items:center;gap:5px;transition:.12s}
+.nbtn:hover{background:var(--gray)}
+.nbtn:disabled{opacity:.4;cursor:not-allowed}
+.nbtn-p{background:var(--teal);color:var(--teal0);border-color:var(--teal)}
+.nbtn-p:hover{background:#085041}
+#uptime{font-size:10px;font-family:var(--mono);color:var(--hint)}
+.spin{width:13px;height:13px;border:2px solid rgba(255,255,255,0.35);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;display:none}
+.spin.on{display:inline-block}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* ═══ MAIN ═══ */
+.main{padding:22px}
+.wbar{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.winfo{flex:1}
+.wtitle{font-size:26px;font-weight:700;line-height:1}
+.wsub{font-size:11px;font-family:var(--mono);color:var(--hint);margin-top:4px}
+.wbtn{font-size:12px;font-family:var(--mono);padding:7px 16px;border-radius:8px;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--txt)}
+.wbtn:hover{background:var(--gray)}
+.wbtn:disabled{opacity:.35;cursor:not-allowed}
+.wctr{font-size:11px;font-family:var(--mono);color:var(--muted);min-width:80px;text-align:center}
+
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;position:relative;overflow:hidden}
+.kbar{position:absolute;left:0;top:0;bottom:0;width:3px}
+.kl{font-size:9px;font-family:var(--mono);color:var(--muted);letter-spacing:.07em;text-transform:uppercase;margin-bottom:5px}
+.kv{font-size:22px;font-weight:700;line-height:1}
+.kd{font-size:11px;font-family:var(--mono);margin-top:5px}
+.ko{font-size:9px;font-family:var(--mono);color:var(--hint);margin-top:2px}
+.up{color:var(--teal)}.dn{color:var(--coral)}.fl{color:var(--hint)}
+
+.g2{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(0,1fr);gap:10px;margin-bottom:10px}
+.g2b{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+.ct{font-size:9px;font-family:var(--mono);letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:13px;display:flex;justify-content:space-between;align-items:center}
+.badge{font-size:9px;font-family:var(--mono);padding:2px 7px;border-radius:4px}
+.bg{background:var(--teal0);color:var(--teal)}
+.sep{height:1px;background:var(--border);margin:10px 0}
+
+.cmp-row{margin-bottom:11px}
+.cmp-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.cmp-name{font-size:11px;font-family:var(--mono);color:var(--muted)}
+.cmp-vals{display:flex;gap:7px;align-items:center;font-family:var(--mono)}
+.cmp-prev{font-size:10px;color:var(--hint)}
+.cmp-cur{font-size:11px;font-weight:700}
+.cmp-pct{font-size:11px}
+.bbar{height:8px;background:var(--gray);border-radius:4px;overflow:hidden;position:relative}
+.bprev{position:absolute;height:100%;border-radius:4px;background:var(--border)}
+.bcur{position:absolute;height:100%;border-radius:4px;transition:width .5s ease}
+
+.htable{width:100%;border-collapse:collapse;font-size:11px}
+.htable th{font-size:9px;font-family:var(--mono);color:var(--muted);font-weight:400;text-transform:uppercase;letter-spacing:.06em;padding:7px 10px;text-align:right;border-bottom:1px solid var(--border)}
+.htable th:first-child{text-align:left}
+.htable td{padding:8px 10px;text-align:right;border-bottom:1px solid #f5f3ef;font-family:var(--mono);color:var(--muted)}
+.htable td:first-child{text-align:left;font-weight:700;color:var(--txt)}
+.htable tr:last-child td{border-bottom:none}
+.htable tr.cw td{background:rgba(15,110,86,0.04);color:var(--txt)}
+.htable tr.cw td:first-child{color:var(--teal)}
+.htable tr{cursor:pointer}
+.htable tr:hover td{background:rgba(0,0,0,0.015)}
+
+.empty{display:flex;align-items:center;justify-content:center;padding:40px;font-size:11px;font-family:var(--mono);color:var(--hint)}
+
+@media print{.nav,.wbar .wbtn,.wbar .wctr,#cfg{display:none}.main{padding:0}}
+</style>
+</head>
+<body>
+
+<!-- ════ CONFIG ════ -->
+<div id="cfg">
+  <div class="cfg-box">
+    <div class="cfg-logo">Archipel · Marketing ops</div>
+    <div class="cfg-title">Connecter votre Google Sheets</div>
+    <div class="cfg-sub">Collez l'URL de votre Apps Script déployé. Le dashboard lira automatiquement vos données à chaque clic sur Actualiser.</div>
+
+    <div class="cfg-saved" id="cfg-saved">
+      Configuration sauvegardée — reconnexion automatique en cours…
+    </div>
+
+    <div class="cfg-field">
+      <label>URL Apps Script — se termine par /exec</label>
+      <input id="in-url" placeholder="https://script.google.com/macros/s/…/exec" />
+      <div class="cfg-hint">L'URL complète copiée depuis Apps Script → Déployer → Gérer les déploiements</div>
+    </div>
+    <div class="cfg-field">
+      <label>Nom de l'onglet Sheets</label>
+      <input id="in-tab" value="Feuille1" placeholder="Feuille1" />
+      <div class="cfg-hint">Le nom exact de l'onglet affiché en bas de votre Sheets</div>
+    </div>
+
+    <button class="cfg-btn" id="cfg-btn" onclick="connectScript()">
+      Connecter et charger les données
+    </button>
+    <div class="cfg-err" id="cfg-err"></div>
+    <div class="cfg-sep"></div>
+    <div class="cfg-demo" onclick="loadDemo()">Tester avec données de démonstration →</div>
+  </div>
+</div>
+
+<!-- ════ NAV ════ -->
+<div class="nav">
+  <div class="nav-l">
+    <div class="nav-brand">Archipel</div>
+    <div class="nav-title">Dashboard marketing</div>
+    <div class="status">
+      <div class="sdot" id="sdot" style="background:var(--amber)"></div>
+      <span id="stxt" style="color:var(--amber);font-size:10px;font-family:var(--mono)">Démo</span>
+    </div>
+  </div>
+  <div class="nav-r">
+    <span id="uptime"></span>
+    <button class="nbtn nbtn-p" id="ref-btn" onclick="doRefresh()">
+      <div class="spin" id="spin"></div>
+      <span id="ref-lbl">Actualiser</span>
+    </button>
+    <button class="nbtn" onclick="openCfg()">Configurer</button>
+    <button class="nbtn" onclick="window.print()">Imprimer</button>
+  </div>
+</div>
+
+<!-- ════ MAIN ════ -->
+<div class="main">
+
+  <div class="wbar">
+    <div class="winfo">
+      <div class="wtitle" id="wtitle">—</div>
+      <div class="wsub" id="wsub"></div>
+    </div>
+    <button class="wbtn" id="wprev" onclick="changeWeek(-1)">← Préc.</button>
+    <div class="wctr" id="wctr"></div>
+    <button class="wbtn" id="wnext" onclick="changeWeek(1)">Suiv. →</button>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><div class="kbar" style="background:var(--teal)"></div>
+      <div class="kl">Visites web</div><div class="kv" id="kv-vis">—</div>
+      <div class="kd" id="kd-vis"></div><div class="ko" id="ko-vis"></div>
+    </div>
+    <div class="kpi"><div class="kbar" style="background:var(--blue)"></div>
+      <div class="kl">Clics Ads</div><div class="kv" id="kv-ads">—</div>
+      <div class="kd" id="kd-ads"></div><div class="ko" id="ko-ads"></div>
+    </div>
+    <div class="kpi"><div class="kbar" style="background:var(--pink)"></div>
+      <div class="kl">Reach social</div><div class="kv" id="kv-reach">—</div>
+      <div class="kd" id="kd-reach"></div><div class="ko" id="ko-reach"></div>
+    </div>
+    <div class="kpi"><div class="kbar" style="background:var(--amber)"></div>
+      <div class="kl">ROAS moyen</div><div class="kv" id="kv-roas">—</div>
+      <div class="kd" id="kd-roas"></div><div class="ko" id="ko-roas"></div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="ct">
+        <span>Évolution journalière</span>
+        <div style="display:flex;gap:10px">
+          <span style="display:flex;align-items:center;gap:4px;font-size:9px;font-family:var(--mono);color:var(--muted)"><span style="width:8px;height:8px;border-radius:2px;background:var(--teal);display:inline-block"></span>SEO</span>
+          <span style="display:flex;align-items:center;gap:4px;font-size:9px;font-family:var(--mono);color:var(--muted)"><span style="width:8px;height:8px;border-radius:2px;background:var(--blue);display:inline-block"></span>Ads</span>
+          <span style="display:flex;align-items:center;gap:4px;font-size:9px;font-family:var(--mono);color:var(--muted)"><span style="width:8px;height:8px;border-radius:2px;background:var(--pink);display:inline-block"></span>Social ÷10</span>
+        </div>
+      </div>
+      <div style="position:relative;width:100%;height:200px"><canvas id="ch-week"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="ct"><span>S vs S-1 — comparaison</span></div>
+      <div id="cmp-wrap"><div class="empty">Chargement…</div></div>
+    </div>
+  </div>
+
+  <div class="g2b">
+    <div class="card">
+      <div class="ct"><span>8 dernières semaines — visites &amp; Ads</span></div>
+      <div style="position:relative;width:100%;height:170px"><canvas id="ch-hist"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="ct"><span>ROAS &amp; engagement tendance</span></div>
+      <div style="position:relative;width:100%;height:170px"><canvas id="ch-roas"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ct">
+      <span>Historique complet</span>
+      <span id="total-rows" class="badge bg"></span>
+    </div>
+    <div id="htable-wrap"><div class="empty">Aucune donnée chargée.</div></div>
+  </div>
+
+</div>
+
+<script>
+/* ══ STATE ══ */
+let SCRIPT_URL = '', SHEET_TAB = 'Feuille1';
+let allRows = [], allWeeks = [], wIdx = 0;
+let chWeek, chHist, chRoas;
+
+/* ══ FETCH depuis Apps Script ══ */
+async function fetchData(url, tab) {
+  const fullUrl = url.includes('?') ? url + '&sheet=' + encodeURIComponent(tab) : url + '?sheet=' + encodeURIComponent(tab);
+  const res = await fetch(fullUrl, { cache: 'no-store' });
+  if (!res.ok) throw new Error('Erreur HTTP ' + res.status);
+  const json = await res.json();
+  if (json.error) throw new Error(json.error);
+  if (!json.rows) throw new Error('Format de réponse inattendu');
+  return json.rows;
+}
+
+/* ══ CONNECT ══ */
+async function connectScript() {
+  const url = document.getElementById('in-url').value.trim();
+  const tab = document.getElementById('in-tab').value.trim() || 'Feuille1';
+  const errEl = document.getElementById('cfg-err');
+  const btn = document.getElementById('cfg-btn');
+  if (!url) { errEl.textContent = 'Collez l\'URL de votre Apps Script.'; return; }
+  if (!url.includes('script.google.com')) { errEl.textContent = 'L\'URL doit commencer par https://script.google.com/…'; return; }
+  errEl.textContent = '';
+  btn.textContent = 'Connexion…'; btn.disabled = true;
+  try {
+    const rows = await fetchData(url, tab);
+    SCRIPT_URL = url; SHEET_TAB = tab;
+    localStorage.setItem('archi_url', url);
+    localStorage.setItem('archi_tab', tab);
+    allRows = rows; allWeeks = buildWeeks(rows);
+    wIdx = allWeeks.length - 1;
+    document.getElementById('cfg').style.display = 'none';
+    setStatus('live', 'Connecté · ' + rows.length + ' entrées');
+    setUptime(); renderAll();
+  } catch(e) {
+    errEl.textContent = e.message;
+    btn.textContent = 'Connecter et charger les données'; btn.disabled = false;
+  }
+}
+
+function openCfg() {
+  document.getElementById('cfg').style.display = 'flex';
+  document.getElementById('cfg-btn').textContent = 'Connecter et charger les données';
+  document.getElementById('cfg-btn').disabled = false;
+  document.getElementById('cfg-err').textContent = '';
+}
+
+/* ══ REFRESH ══ */
+async function doRefresh() {
+  if (!SCRIPT_URL) { loadDemo(); return; }
+  const btn = document.getElementById('ref-btn');
+  const spin = document.getElementById('spin');
+  btn.disabled = true; spin.classList.add('on');
+  document.getElementById('ref-lbl').textContent = 'Chargement…';
+  try {
+    const rows = await fetchData(SCRIPT_URL, SHEET_TAB);
+    allRows = rows; allWeeks = buildWeeks(rows);
+    wIdx = allWeeks.length - 1;
+    setStatus('live', 'Connecté · ' + rows.length + ' entrées');
+    setUptime(); renderAll();
+  } catch(e) {
+    setStatus('err', 'Erreur — ' + e.message);
+  } finally {
+    btn.disabled = false; spin.classList.remove('on');
+    document.getElementById('ref-lbl').textContent = 'Actualiser';
+  }
+}
+
+function setStatus(mode, label) {
+  const colors = { live:'var(--teal)', demo:'var(--amber)', err:'var(--coral)' };
+  document.getElementById('sdot').style.background = colors[mode];
+  document.getElementById('stxt').style.color = colors[mode];
+  document.getElementById('stxt').textContent = label;
+}
+function setUptime() {
+  document.getElementById('uptime').textContent = 'Mis à jour ' + new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+}
+
+/* ══ WEEK UTILS ══ */
+function isoWeek(ds) {
+  const d = new Date(ds + 'T00:00:00'); const day = d.getDay()||7;
+  d.setDate(d.getDate()+4-day);
+  const jan = new Date(d.getFullYear(),0,1);
+  const wn = Math.ceil(((d-jan)/86400000+1)/7);
+  return d.getFullYear()+'-W'+String(wn).padStart(2,'0');
+}
+function buildWeeks(rows) {
+  const m = {};
+  rows.forEach(r=>{ const k=isoWeek(r.date); if(!m[k]) m[k]={key:k,rows:[]}; m[k].rows.push(r); });
+  return Object.values(m).sort((a,b)=>a.key.localeCompare(b.key));
+}
+function wSum(w,f){ return w.rows.reduce((s,r)=>s+(+r[f]||0),0); }
+function wAvg(w,f){ const s=wSum(w,f); return w.rows.length?s/w.rows.length:0; }
+function wNum(w){ return parseInt(w.key.split('-W')[1]); }
+function wYear(w){ return parseInt(w.key.split('-W')[0]); }
+function wDates(w) {
+  const dates = w.rows.map(r=>r.date).sort();
+  const fmt = d => new Date(d+'T00:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
+  return fmt(dates[0]) + ' – ' + fmt(dates[dates.length-1]);
+}
+function fn(n){ return Math.round(n).toLocaleString('fr-FR'); }
+function fd(cur,prev) {
+  if(!prev) return '<span class="fl">Première semaine</span>';
+  const p = Math.round((cur/prev-1)*100);
+  if(p===0) return '<span class="fl">stable vs S-1</span>';
+  return p>0 ? '<span class="up">↑ +'+p+'% vs S-1</span>' : '<span class="dn">↓ '+p+'% vs S-1</span>';
+}
+
+/* ══ NAVIGATION ══ */
+function changeWeek(dir) {
+  wIdx = Math.max(0, Math.min(allWeeks.length-1, wIdx+dir));
+  renderDashboard();
+}
+
+/* ══ RENDER ALL ══ */
+function renderAll() {
+  if(!allWeeks.length) return;
+  renderDashboard(); renderHistTable(); renderHistChart(); renderRoasChart();
+  document.getElementById('total-rows').textContent = allRows.length + ' entrées · ' + allWeeks.length + ' sem.';
+}
+
+/* ══ DASHBOARD ══ */
+function renderDashboard() {
+  if(!allWeeks.length) return;
+  const cur = allWeeks[wIdx];
+  const prev = wIdx>0 ? allWeeks[wIdx-1] : null;
+
+  document.getElementById('wtitle').textContent = 'Semaine ' + wNum(cur) + ' · ' + wYear(cur);
+  document.getElementById('wsub').textContent = wDates(cur);
+  document.getElementById('wctr').textContent = (wIdx+1) + ' / ' + allWeeks.length;
+  document.getElementById('wprev').disabled = wIdx===0;
+  document.getElementById('wnext').disabled = wIdx===allWeeks.length-1;
+
+  const cv=wSum(cur,'visites'), pv=prev?wSum(prev,'visites'):0;
+  const ca=wSum(cur,'clics_ads'), pa=prev?wSum(prev,'clics_ads'):0;
+  const cr=wSum(cur,'reach_social'), pr=prev?wSum(prev,'reach_social'):0;
+  const cro=wAvg(cur,'roas'), pro=prev?wAvg(prev,'roas'):0;
+
+  function setK(id,val,delta,ko){ document.getElementById('kv-'+id).textContent=val; document.getElementById('kd-'+id).innerHTML=delta; document.getElementById('ko-'+id).textContent=ko; }
+  setK('vis', fn(cv), fd(cv,pv), prev?'S préc. : '+fn(pv):'');
+  setK('ads', fn(ca), fd(ca,pa), prev?'S préc. : '+fn(pa):'');
+  setK('reach', fn(cr), fd(cr,pr), prev?'S préc. : '+fn(pr):'');
+  setK('roas', cro.toFixed(1)+'×', fd(cro,pro), prev?'S préc. : '+pro.toFixed(1)+'×':'');
+
+  renderWeekChart(cur); renderComparison(cur,prev);
+}
+
+/* ══ WEEK CHART ══ */
+function renderWeekChart(w) {
+  const days = [...w.rows].sort((a,b)=>a.date.localeCompare(b.date));
+  const labels = days.map(r=>new Date(r.date+'T00:00:00').toLocaleDateString('fr-FR',{weekday:'short',day:'numeric'}));
+  if(chWeek) chWeek.destroy();
+  chWeek = new Chart(document.getElementById('ch-week'),{
+    type:'line',
+    data:{ labels, datasets:[
+      {data:days.map(r=>r.trafic_seo||0), borderColor:'#0f6e56', backgroundColor:'rgba(15,110,86,0.07)', borderWidth:2, pointRadius:4, pointBackgroundColor:'#0f6e56', tension:0.35, fill:true},
+      {data:days.map(r=>r.clics_ads||0), borderColor:'#185fa5', backgroundColor:'rgba(24,95,165,0.05)', borderWidth:2, pointRadius:4, pointBackgroundColor:'#185fa5', tension:0.35, fill:true},
+      {data:days.map(r=>Math.round((r.reach_social||0)/10)), borderColor:'#993556', backgroundColor:'rgba(153,53,86,0.04)', borderWidth:1.5, pointRadius:3, pointBackgroundColor:'#993556', tension:0.35, fill:true, borderDash:[4,3]}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false}},
+      scales:{x:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#bbb',font:{size:10,family:'Courier New'},maxRotation:0}},
+              y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#bbb',font:{size:10,family:'Courier New'}}}}}
+  });
+}
+
+/* ══ COMPARISON ══ */
+function renderComparison(cur,prev) {
+  const el = document.getElementById('cmp-wrap');
+  if(!prev){ el.innerHTML='<div class="empty">Aucune semaine précédente.</div>'; return; }
+  const metrics=[
+    {label:'Visites web', f:'visites', color:'#0f6e56'},
+    {label:'Clics Ads', f:'clics_ads', color:'#185fa5'},
+    {label:'Reach social', f:'reach_social', color:'#993556'},
+    {label:'Trafic SEO', f:'trafic_seo', color:'#0f6e56'},
+    {label:'Budget (€)', f:'budget', color:'#ba7517'},
+  ];
+  el.innerHTML = metrics.map(m=>{
+    const cv=wSum(cur,m.f), pv=wSum(prev,m.f);
+    const max=Math.max(cv,pv)||1;
+    const pw=Math.round(pv/max*100), cw=Math.round(cv/max*100);
+    const pct=pv?Math.round((cv/pv-1)*100):0;
+    const cls=pct>0?'up':pct<0?'dn':'fl';
+    const sign=pct>0?'+':'';
+    return `<div class="cmp-row">
+      <div class="cmp-hdr">
+        <span class="cmp-name">${m.label}</span>
+        <div class="cmp-vals">
+          <span class="cmp-prev">${fn(pv)}</span>
+          <span style="font-size:9px;color:var(--hint)">→</span>
+          <span class="cmp-cur">${fn(cv)}</span>
+          <span class="cmp-pct ${cls}">${sign}${pct}%</span>
+        </div>
+      </div>
+      <div class="bbar"><div class="bprev" style="width:${pw}%"></div><div class="bcur" style="width:${cw}%;background:${m.color};opacity:.75"></div></div>
+    </div>`;
+  }).join('');
+}
+
+/* ══ HISTORY TABLE ══ */
+function renderHistTable() {
+  const el = document.getElementById('htable-wrap');
+  if(!allWeeks.length){ el.innerHTML='<div class="empty">Aucune donnée.</div>'; return; }
+  const curKey = allWeeks[wIdx].key;
+  el.innerHTML = `<table class="htable">
+    <thead><tr>
+      <th>Semaine</th><th>Visites</th><th>Clics Ads</th><th>Reach social</th><th>Trafic SEO</th><th>Budget (€)</th><th>ROAS moy.</th><th>Eng. (%)</th>
+    </tr></thead>
+    <tbody>${[...allWeeks].reverse().map(w=>`
+      <tr class="${w.key===curKey?'cw':''}" onclick="jumpToWeek('${w.key}')">
+        <td>S${wNum(w)} · ${wYear(w)}<br><span style="font-size:9px;color:var(--hint);font-weight:400">${wDates(w)}</span></td>
+        <td>${fn(wSum(w,'visites'))}</td>
+        <td>${fn(wSum(w,'clics_ads'))}</td>
+        <td>${fn(wSum(w,'reach_social'))}</td>
+        <td>${fn(wSum(w,'trafic_seo'))}</td>
+        <td>${fn(wSum(w,'budget'))} €</td>
+        <td>${wAvg(w,'roas').toFixed(1)}×</td>
+        <td>${wAvg(w,'engagement').toFixed(1)}%</td>
+      </tr>`).join('')}
+    </tbody></table>`;
+}
+
+function jumpToWeek(key) {
+  const idx = allWeeks.findIndex(w=>w.key===key);
+  if(idx>=0){ wIdx=idx; renderDashboard(); renderHistTable(); }
+}
+
+/* ══ HISTORY CHART ══ */
+function renderHistChart() {
+  const weeks = allWeeks.slice(-8);
+  if(chHist) chHist.destroy();
+  chHist = new Chart(document.getElementById('ch-hist'),{
+    type:'bar',
+    data:{labels:weeks.map(w=>'S'+wNum(w)),datasets:[
+      {label:'Visites',data:weeks.map(w=>wSum(w,'visites')),backgroundColor:'rgba(15,110,86,0.7)',borderRadius:4},
+      {label:'Ads',data:weeks.map(w=>wSum(w,'clics_ads')),backgroundColor:'rgba(24,95,165,0.6)',borderRadius:4}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{grid:{display:false},ticks:{color:'#bbb',font:{size:10,family:'Courier New'}}},
+              y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#bbb',font:{size:10,family:'Courier New'}}}}}
+  });
+}
+
+/* ══ ROAS CHART ══ */
+function renderRoasChart() {
+  const weeks = allWeeks.slice(-8);
+  if(chRoas) chRoas.destroy();
+  chRoas = new Chart(document.getElementById('ch-roas'),{
+    type:'line',
+    data:{labels:weeks.map(w=>'S'+wNum(w)),datasets:[
+      {label:'ROAS',data:weeks.map(w=>+wAvg(w,'roas').toFixed(2)),borderColor:'#ba7517',backgroundColor:'rgba(186,117,23,0.07)',borderWidth:2,pointRadius:4,pointBackgroundColor:'#ba7517',tension:0.35,fill:true,yAxisID:'y1'},
+      {label:'Eng',data:weeks.map(w=>+wAvg(w,'engagement').toFixed(2)),borderColor:'#993556',backgroundColor:'rgba(153,53,86,0.04)',borderWidth:2,pointRadius:4,pointBackgroundColor:'#993556',tension:0.35,fill:true,yAxisID:'y2'}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{
+        x:{grid:{display:false},ticks:{color:'#bbb',font:{size:10,family:'Courier New'}}},
+        y1:{position:'left',grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#bbb',font:{size:10,family:'Courier New'}}},
+        y2:{position:'right',grid:{display:false},ticks:{color:'#bbb',font:{size:10,family:'Courier New'}}}
+      }}
+  });
+}
+
+/* ══ DEMO ══ */
+function loadDemo() {
+  const rows=[];
+  const start=new Date('2026-01-05');
+  for(let w=0;w<12;w++) for(let d=0;d<5;d++){
+    const dt=new Date(start); dt.setDate(start.getDate()+w*7+d);
+    rows.push({date:dt.toISOString().slice(0,10),visites:Math.round(900+w*55+Math.random()*180),clics_ads:Math.round(520+w*28+Math.random()*130),reach_social:Math.round(9000+w*600+Math.random()*2200),budget:Math.round(420+w*18+Math.random()*90),trafic_seo:Math.round(620+w*38+Math.random()*140),roas:+(3.2+Math.random()*2.3).toFixed(1),engagement:+(3.8+Math.random()*1.8).toFixed(1)});
+  }
+  SCRIPT_URL='DEMO'; allRows=rows; allWeeks=buildWeeks(rows); wIdx=allWeeks.length-1;
+  document.getElementById('cfg').style.display='none';
+  setStatus('demo','Mode démo'); setUptime(); renderAll();
+}
+
+/* ══ INIT — restore config ══ */
+(async function(){
+  const savedUrl = localStorage.getItem('archi_url');
+  const savedTab = localStorage.getItem('archi_tab')||'Feuille1';
+  if(savedUrl){
+    document.getElementById('in-url').value = savedUrl;
+    document.getElementById('in-tab').value = savedTab;
+    document.getElementById('cfg-saved').style.display = 'block';
+    SCRIPT_URL=savedUrl; SHEET_TAB=savedTab;
+    try{
+      const rows = await fetchData(savedUrl, savedTab);
+      allRows=rows; allWeeks=buildWeeks(rows); wIdx=allWeeks.length-1;
+      document.getElementById('cfg').style.display='none';
+      setStatus('live','Connecté · '+rows.length+' entrées');
+      setUptime(); renderAll();
+    } catch(e){
+      document.getElementById('cfg-saved').style.display='none';
+      setStatus('err','Reconnexion requise');
+    }
+  }
+})();
+</script>
+</body>
+</html>
