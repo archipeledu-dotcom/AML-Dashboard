@@ -70,6 +70,14 @@ body{font-family:var(--sans);background:var(--gray);color:var(--txt);min-height:
 @keyframes sp{to{transform:rotate(360deg)}}
 
 /* ═══ SECTION TABS ═══ */
+.period-sel{display:flex;gap:3px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:3px}
+.pbtn{font-size:11px;font-family:var(--mono);padding:5px 14px;border-radius:16px;cursor:pointer;border:none;background:transparent;color:var(--muted);transition:.12s}
+.pbtn:hover{background:var(--gray)}
+.pbtn.on{background:var(--teal);color:var(--teal0)}
+.kpi-cmp{font-size:10px;font-family:var(--mono);margin-top:4px;padding:3px 7px;border-radius:4px;display:inline-block}
+.kpi-cmp.up{background:var(--teal0);color:var(--teal)}
+.kpi-cmp.dn{background:var(--coral0);color:var(--coral)}
+.kpi-cmp.fl{background:var(--gray);color:var(--muted)}
 .section-tabs{display:flex;gap:0;margin-bottom:20px;border-bottom:1px solid var(--border)}
 .stab{font-size:12px;font-family:var(--mono);padding:10px 20px;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;transition:.12s}
 .stab:hover{color:var(--txt)}
@@ -253,9 +261,14 @@ body{font-family:var(--sans);background:var(--gray);color:var(--txt);min-height:
       <div class="wtitle" id="wtitle">—</div>
       <div class="wsub" id="wsub"></div>
     </div>
-    <button class="wbtn" id="wprev" onclick="changeWeek(-1)">← Préc.</button>
+    <div class="period-sel">
+      <button class="pbtn" id="pb-day" onclick="setPeriod('day',this)">Jour</button>
+      <button class="pbtn on" id="pb-week" onclick="setPeriod('week',this)">Semaine</button>
+      <button class="pbtn" id="pb-month" onclick="setPeriod('month',this)">Mois</button>
+    </div>
+    <button class="wbtn" id="wprev" onclick="changePeriod(-1)">← Préc.</button>
     <div class="wctr" id="wctr"></div>
-    <button class="wbtn" id="wnext" onclick="changeWeek(1)">Suiv. →</button>
+    <button class="wbtn" id="wnext" onclick="changePeriod(1)">Suiv. →</button>
   </div>
 
   <div class="section-tabs">
@@ -436,6 +449,7 @@ let TAB_PERF='performance', TAB_SMM='smm', TAB_PROD='prod';
 let perfRows=[], smmRows=[], prodRows=[];
 let perfWeeks=[], smmWeeks=[], prodWeeks=[];
 let wIdx=0;
+let currentPeriod='week'; // 'day' | 'week' | 'month'
 let chPerf, chPerfHist, chSmmReach, chSmmFollow, chProdHist;
 let activeSection='perf';
 
@@ -497,6 +511,7 @@ async function connectAll() {
     perfRows=rP; smmRows=rS; prodRows=rPr;
     perfWeeks=buildWeeks(rP); smmWeeks=buildWeeks(rS); prodWeeks=buildWeeks(rPr);
     wIdx = Math.max(perfWeeks.length, smmWeeks.length, prodWeeks.length) - 1;
+    currentPeriod='week';
     document.getElementById('cfg').style.display = 'none';
     setStatus('live', 'Connecté · ' + (rP.length+rS.length+rPr.length) + ' entrées');
     setUptime(); renderAll();
@@ -528,6 +543,7 @@ async function doRefresh() {
     perfRows=rP; smmRows=rS; prodRows=rPr;
     perfWeeks=buildWeeks(rP); smmWeeks=buildWeeks(rS); prodWeeks=buildWeeks(rPr);
     wIdx = Math.max(perfWeeks.length, smmWeeks.length, prodWeeks.length) - 1;
+    currentPeriod='week';
     setStatus('live','Connecté · '+(rP.length+rS.length+rPr.length)+' entrées');
     setUptime(); renderAll();
   } catch(e) { setStatus('err','Erreur — '+e.message); }
@@ -587,25 +603,93 @@ function fd(cur,prev,lower_is_better) {
 function getW(weeks, idx) { return idx>=0&&idx<weeks.length ? weeks[idx] : null; }
 
 /* ══════════ CHANGE WEEK ══════════ */
-function changeWeek(dir) {
-  const maxIdx = Math.max(perfWeeks.length, smmWeeks.length, prodWeeks.length) - 1;
-  wIdx = Math.max(0, Math.min(maxIdx, wIdx+dir));
+function changePeriod(dir) {
+  const items = getPeriodItems();
+  wIdx = Math.max(0, Math.min(items.length-1, wIdx+dir));
   renderAll();
+}
+
+function setPeriod(p, el) {
+  currentPeriod = p;
+  document.querySelectorAll('.pbtn').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  // Reset to last period
+  const items = getPeriodItems();
+  wIdx = items.length - 1;
+  renderAll();
+}
+
+function getPeriodItems() {
+  if (currentPeriod === 'day') return getAllDays();
+  if (currentPeriod === 'month') return getMonths();
+  return perfWeeks.length ? perfWeeks : smmWeeks.length ? smmWeeks : prodWeeks;
+}
+
+function getAllDays() {
+  const dates = [...new Set([
+    ...perfRows.map(r=>r.date),
+    ...smmRows.map(r=>r.date),
+    ...prodRows.map(r=>r.date)
+  ])].sort();
+  return dates.map(d=>({key:d, date:d, rows:null}));
+}
+
+function getMonths() {
+  const map = {};
+  [...perfRows,...smmRows,...prodRows].forEach(r=>{
+    const k = r.date.slice(0,7);
+    if (!map[k]) map[k] = {key:k, rows:[]};
+    map[k].rows.push(r);
+  });
+  return Object.values(map).sort((a,b)=>a.key.localeCompare(b.key));
+}
+
+function getPerfRows(item) {
+  if (currentPeriod === 'day') return perfRows.filter(r=>r.date===item.key);
+  if (currentPeriod === 'month') return perfRows.filter(r=>r.date.startsWith(item.key));
+  return item.rows || [];
+}
+function getSmmRows(item) {
+  if (currentPeriod === 'day') return smmRows.filter(r=>r.date===item.key);
+  if (currentPeriod === 'month') return smmRows.filter(r=>r.date.startsWith(item.key));
+  return item.rows || [];
+}
+function getProdRows(item) {
+  if (currentPeriod === 'day') return prodRows.filter(r=>r.date===item.key);
+  if (currentPeriod === 'month') return prodRows.filter(r=>r.date.startsWith(item.key));
+  return item.rows || [];
+}
+
+function makeFakeWeek(rows) { return rows.length ? {key:'', rows} : null; }
+
+function periodLabel(item) {
+  if (currentPeriod === 'day') {
+    return new Date(item.key+'T00:00:00').toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  }
+  if (currentPeriod === 'month') {
+    const [y,m] = item.key.split('-');
+    return new Date(y,m-1,1).toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
+  }
+  return 'Semaine '+wNum(item)+' · '+wYear(item);
+}
+
+function periodSubLabel(item) {
+  if (currentPeriod === 'day') return '';
+  if (currentPeriod === 'month') return item.rows ? item.rows.length+' entrées' : '';
+  return wDates(item);
 }
 
 /* ══════════ RENDER ALL ══════════ */
 function renderAll() {
-  const maxIdx = Math.max(perfWeeks.length, smmWeeks.length, prodWeeks.length) - 1;
-  if(maxIdx < 0) return;
-  const refWeeks = perfWeeks.length ? perfWeeks : smmWeeks.length ? smmWeeks : prodWeeks;
-  const curW = getW(refWeeks, wIdx);
-  if(curW) {
-    document.getElementById('wtitle').textContent = 'Semaine '+wNum(curW)+' · '+wYear(curW);
-    document.getElementById('wsub').textContent = wDates(curW);
-  }
-  document.getElementById('wctr').textContent = (wIdx+1)+' / '+(maxIdx+1);
+  const items = getPeriodItems();
+  if(!items.length) return;
+  wIdx = Math.max(0, Math.min(items.length-1, wIdx));
+  const cur = items[wIdx];
+  document.getElementById('wtitle').textContent = periodLabel(cur);
+  document.getElementById('wsub').textContent = periodSubLabel(cur);
+  document.getElementById('wctr').textContent = (wIdx+1)+' / '+items.length;
   document.getElementById('wprev').disabled = wIdx===0;
-  document.getElementById('wnext').disabled = wIdx===maxIdx;
+  document.getElementById('wnext').disabled = wIdx===items.length-1;
   renderPerf();
   renderSMM();
   renderProd();
@@ -613,8 +697,24 @@ function renderAll() {
 
 /* ══════════ RENDER PERF ══════════ */
 function renderPerf() {
-  const cur=getW(perfWeeks,wIdx), prev=getW(perfWeeks,wIdx-1);
+  const items = getPeriodItems();
+  const curItem = items[wIdx], prevItem = wIdx>0?items[wIdx-1]:null;
+  const curRows = getPerfRows(curItem||{key:''});
+  const prevRows = prevItem ? getPerfRows(prevItem) : [];
+  const cur = makeFakeWeek(curRows);
+  const prev = makeFakeWeek(prevRows);
   function sk(id,val,delta,ko){ document.getElementById('p-'+id).textContent=val; document.getElementById('pd-'+id).innerHTML=delta; document.getElementById('po-'+id).textContent=ko; }
+  function cmpBadge(cur,prev,lowerBetter){
+    if(!prev) return '';
+    const p=Math.round((cur/prev-1)*100);
+    if(p===0) return '<span class="kpi-cmp fl">= stable</span>';
+    const good = lowerBetter ? p<0 : p>0;
+    const sign=p>0?'+':'';
+    return good
+      ? '<span class="kpi-cmp up">↑ '+sign+p+'% vs préc.</span>'
+      : '<span class="kpi-cmp dn">↓ '+sign+p+'% vs préc.</span>';
+  }
+  const lbl = currentPeriod==='day' ? 'J-1' : currentPeriod==='month' ? 'M-1' : 'S-1';
 
   const ca=wSum(cur,'ca'), pca=wSum(prev,'ca');
   const leads=wSum(cur,'leads'), pleads=wSum(prev,'leads');
@@ -624,13 +724,13 @@ function renderPerf() {
   const budget=wSum(cur,'budget_ads'), pbudget=wSum(prev,'budget_ads');
   const trafic=wSum(cur,'trafic_site'), ptrafic=wSum(prev,'trafic_site');
 
-  sk('ca', fc(ca), fd(ca,pca), prev?'S-1 : '+fc(pca):'');
-  sk('leads', fn(leads), fd(leads,pleads), prev?'S-1 : '+fn(pleads):'');
-  sk('cpl', fc(cpl), fd(cpl,pcpl,true), prev?'S-1 : '+fc(pcpl):'');
-  sk('tconv', fp(tconv), fd(tconv,ptconv), prev?'S-1 : '+fp(ptconv):'');
-  sk('roas', roas.toFixed(1)+'×', fd(roas,proas), prev?'S-1 : '+proas.toFixed(1)+'×':'');
-  sk('budget', fc(budget), fd(budget,pbudget), prev?'S-1 : '+fc(pbudget):'');
-  sk('trafic', fn(trafic), fd(trafic,ptrafic), prev?'S-1 : '+fn(ptrafic):'');
+  sk('ca',    fc(ca),               cmpBadge(ca,pca),          prev?lbl+' : '+fc(pca):'');
+  sk('leads', fn(leads),            cmpBadge(leads,pleads),     prev?lbl+' : '+fn(pleads):'');
+  sk('cpl',   fc(cpl),              cmpBadge(cpl,pcpl,true),    prev?lbl+' : '+fc(pcpl):'');
+  sk('tconv', fp(tconv),            cmpBadge(tconv,ptconv),     prev?lbl+' : '+fp(ptconv):'');
+  sk('roas',  roas.toFixed(1)+'×',  cmpBadge(roas,proas),       prev?lbl+' : '+proas.toFixed(1)+'×':'');
+  sk('budget',fc(budget),           cmpBadge(budget,pbudget),   prev?lbl+' : '+fc(pbudget):'');
+  sk('trafic',fn(trafic),           cmpBadge(trafic,ptrafic),   prev?lbl+' : '+fn(ptrafic):'');
 
   // Chart perf semaine
   if(cur) {
@@ -731,9 +831,16 @@ function renderPerf() {
 
 /* ══════════ RENDER SMM ══════════ */
 function renderSMM() {
-  const cur=getW(smmWeeks,wIdx), prev=getW(smmWeeks,wIdx-1);
+  const items = getPeriodItems();
+  const curItem = items[wIdx], prevItem = wIdx>0?items[wIdx-1]:null;
+  const curRows = getSmmRows(curItem||{key:''});
+  const prevRows = prevItem ? getSmmRows(prevItem) : [];
+  const cur = makeFakeWeek(curRows);
+  const prev = makeFakeWeek(prevRows);
   function sk(id,val,delta,ko){ document.getElementById('s-'+id).textContent=val; document.getElementById('sd-'+id).innerHTML=delta; document.getElementById('so-'+id).textContent=ko; }
 
+  function cmpB(c,p,lb){ if(!p) return ''; const pc=Math.round((c/p-1)*100); if(!pc) return '<span class="kpi-cmp fl">= stable</span>'; const g=lb?pc<0:pc>0; const s=pc>0?'+':''; return g?'<span class="kpi-cmp up">↑ '+s+pc+'% vs préc.</span>':'<span class="kpi-cmp dn">↓ '+s+pc+'% vs préc.</span>'; }
+  const lbl2 = currentPeriod==='day'?'J-1':currentPeriod==='month'?'M-1':'S-1';
   const reach=wSum(cur,'reach_fb')+wSum(cur,'reach_ig')+wSum(cur,'reach_li');
   const preach=prev?wSum(prev,'reach_fb')+wSum(prev,'reach_ig')+wSum(prev,'reach_li'):0;
   const foll=wSum(cur,'followers_fb')+wSum(cur,'followers_ig')+wSum(cur,'followers_li')+wSum(cur,'followers_tt');
@@ -741,10 +848,10 @@ function renderSMM() {
   const eng=wAvg(cur,'engagement_ig'), peng=prev?wAvg(prev,'engagement_ig'):0;
   const posts=wSum(cur,'posts_total'), pposts=prev?wSum(prev,'posts_total'):0;
 
-  sk('reach',fn(reach),fd(reach,preach),prev?'S-1 : '+fn(preach):'');
-  sk('followers',fn(foll),fd(foll,pfoll),prev?'S-1 : '+fn(pfoll):'');
-  sk('eng',fp(eng),fd(eng,peng),prev?'S-1 : '+fp(peng):'');
-  sk('posts',fn(posts),fd(posts,pposts),prev?'S-1 : '+fn(pposts):'');
+  sk('reach',fn(reach),cmpB(reach,preach),prev?lbl2+' : '+fn(preach):'');
+  sk('followers',fn(foll),cmpB(foll,pfoll),prev?lbl2+' : '+fn(pfoll):'');
+  sk('eng',fp(eng),cmpB(eng,peng),prev?lbl2+' : '+fp(peng):'');
+  sk('posts',fn(posts),cmpB(posts,pposts),prev?lbl2+' : '+fn(pposts):'');
 
   // Canal cards
   const canals=[
@@ -818,9 +925,16 @@ function renderSMM() {
 
 /* ══════════ RENDER PROD ══════════ */
 function renderProd() {
-  const cur=getW(prodWeeks,wIdx), prev=getW(prodWeeks,wIdx-1);
+  const items = getPeriodItems();
+  const curItem = items[wIdx], prevItem = wIdx>0?items[wIdx-1]:null;
+  const curRows = getProdRows(curItem||{key:''});
+  const prevRows = prevItem ? getProdRows(prevItem) : [];
+  const cur = makeFakeWeek(curRows);
+  const prev = makeFakeWeek(prevRows);
   function sk(id,val,delta,ko){ document.getElementById('pr-'+id).textContent=val; document.getElementById('prd-'+id).innerHTML=delta; document.getElementById('pro-'+id).textContent=ko; }
 
+  function cmpP(c,p){ if(!p) return ''; const pc=Math.round((c/p-1)*100); if(!pc) return '<span class="kpi-cmp fl">= stable</span>'; return pc>0?'<span class="kpi-cmp up">↑ +'+pc+'% vs préc.</span>':'<span class="kpi-cmp dn">↓ '+pc+'% vs préc.</span>'; }
+  const lbl3 = currentPeriod==='day'?'J-1':currentPeriod==='month'?'M-1':'S-1';
   const creas=wSum(cur,'creas_produites'), pcreas=wSum(prev,'creas_produites');
   const modifs=wSum(cur,'modifs'), pmodifs=wSum(prev,'modifs');
   const videos=wSum(cur,'videos'), pvideos=wSum(prev,'videos');
@@ -830,10 +944,10 @@ function renderProd() {
   const refusees=wSum(cur,'refusees');
   const total=creas+modifs;
 
-  sk('creas',fn(creas),fd(creas,pcreas),prev?'S-1 : '+fn(pcreas):'');
-  sk('modifs',fn(modifs),fd(modifs,pmodifs),prev?'S-1 : '+fn(pmodifs):'');
-  sk('videos',fn(videos),fd(videos,pvideos),prev?'S-1 : '+fn(pvideos):'');
-  sk('visuels',fn(visuels),fd(visuels,pvisuels),prev?'S-1 : '+fn(pvisuels):'');
+  sk('creas',fn(creas),cmpP(creas,pcreas),prev?lbl3+' : '+fn(pcreas):'');
+  sk('modifs',fn(modifs),cmpP(modifs,pmodifs),prev?lbl3+' : '+fn(pmodifs):'');
+  sk('videos',fn(videos),cmpP(videos,pvideos),prev?lbl3+' : '+fn(pvideos):'');
+  sk('visuels',fn(visuels),cmpP(visuels,pvisuels),prev?lbl3+' : '+fn(pvisuels):'');
 
   document.getElementById('pr-copies').textContent=fn(copies);
   document.getElementById('pr-validees').textContent=fn(validees);
