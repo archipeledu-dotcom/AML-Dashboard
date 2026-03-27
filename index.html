@@ -241,15 +241,31 @@ let SCRIPT_URL = '', SHEET_TAB = 'Feuille1';
 let allRows = [], allWeeks = [], wIdx = 0;
 let chWeek, chHist, chRoas;
 
-/* ══ FETCH depuis Apps Script ══ */
-async function fetchData(url, tab) {
-  const fullUrl = url.includes('?') ? url + '&sheet=' + encodeURIComponent(tab) : url + '?sheet=' + encodeURIComponent(tab);
-  const res = await fetch(fullUrl, { cache: 'no-store' });
-  if (!res.ok) throw new Error('Erreur HTTP ' + res.status);
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  if (!json.rows) throw new Error('Format de réponse inattendu');
-  return json.rows;
+/* ══ FETCH via JSONP — contourne CORS Apps Script ══ */
+function fetchData(url, tab) {
+  return new Promise((resolve, reject) => {
+    const cb = 'archipelCB_' + Date.now();
+    const fullUrl = url.split('?')[0] + '?sheet=' + encodeURIComponent(tab) + '&callback=' + cb;
+    const script = document.createElement('script');
+    const timeout = setTimeout(() => {
+      cleanup();
+      reject(new Error('Timeout — vérifiez que l\'URL /exec est correcte et que le déploiement est actif'));
+    }, 10000);
+    window[cb] = (data) => {
+      cleanup();
+      if (data.error) { reject(new Error(data.error)); return; }
+      if (!data.rows) { reject(new Error('Réponse inattendue du script')); return; }
+      resolve(data.rows);
+    };
+    function cleanup() {
+      clearTimeout(timeout);
+      delete window[cb];
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+    script.onerror = () => { cleanup(); reject(new Error('Script introuvable — URL incorrecte ?')); };
+    script.src = fullUrl;
+    document.head.appendChild(script);
+  });
 }
 
 /* ══ CONNECT ══ */
