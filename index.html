@@ -176,103 +176,44 @@ body{font-family:var(--sans);background:var(--gray);color:var(--txt);min-height:
   <div class="cfg-box">
     <div class="cfg-logo">Archipel · Marketing ops</div>
     <div class="cfg-title">Connecter Google Sheets</div>
-    <div class="cfg-sub">3 onglets dans votre Sheets — un par équipe. Chaque équipe remplit son onglet, le dashboard lit tout.</div>
+    <div class="cfg-sub">3 fichiers Sheets séparés — un par équipe. Collez l’URL Apps Script de chaque fichier.</div>
 
-    <div class="cfg-tabs">
-      <div class="cfg-tab on" onclick="switchCfgTab('perf',this)">Performance</div>
-      <div class="cfg-tab" onclick="switchCfgTab('smm',this)">SMM</div>
-      <div class="cfg-tab" onclick="switchCfgTab('prod',this)">Prod / Créa</div>
-    </div>
-
-    <!-- PERF -->
-    <div class="cfg-sheet-block on" id="cfg-perf">
+    <div style="border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px">
+      <div style="font-size:10px;font-family:var(--mono);font-weight:700;color:var(--blue);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Performance &amp; Growth</div>
       <div class="cfg-field">
-        <label>URL Apps Script /exec</label>
-        <input id="in-url" placeholder="https://script.google.com/macros/s/…/exec"/>
-        <div class="cfg-hint">Une seule URL pour les 3 onglets</div>
+        <label>URL Apps Script — fichier Performance</label>
+        <input id="in-url-perf" placeholder="https://script.google.com/macros/s/…/exec"/>
+        <div class="cfg-hint">Depuis "Archipel · Performance" → Extensions → Apps Script → Déployer</div>
       </div>
       <div class="cfg-field">
-        <label>Onglet Performance & Growth</label>
+        <label>Nom de l’onglet</label>
         <input id="in-tab-perf" value="performance" placeholder="performance"/>
       </div>
-      <div class="cfg-model">
-        <div class="cfg-model-title">Colonnes requises — onglet performance</div>
-        <div class="cfg-model-row">
-          <div class="cfg-col col-key">date</div>
-          <div class="cfg-col col-perf">ca</div>
-          <div class="cfg-col col-perf">leads</div>
-          <div class="cfg-col col-perf">cpl</div>
-        </div>
-        <div class="cfg-model-row">
-          <div class="cfg-col col-perf">taux_conv</div>
-          <div class="cfg-col col-perf">roas</div>
-          <div class="cfg-col col-perf">budget_ads</div>
-          <div class="cfg-col col-perf">trafic_site</div>
-        </div>
-        <div class="cfg-model-row">
-          <div class="cfg-col col-perf">camp_nom</div>
-          <div class="cfg-col col-perf">camp_budget</div>
-          <div class="cfg-col col-perf">camp_leads</div>
-          <div class="cfg-col col-perf">camp_cpl</div>
-        </div>
-        <div class="cfg-model-row">
-          <div class="cfg-col col-perf">gov_tunis</div>
-          <div class="cfg-col col-perf">gov_sfax</div>
-          <div class="cfg-col col-perf">gov_sousse</div>
-          <div class="cfg-col col-perf">gov_autres</div>
-        </div>
-      </div>
     </div>
 
-    <!-- SMM -->
-    <div class="cfg-sheet-block" id="cfg-smm">
+    <div style="border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px">
+      <div style="font-size:10px;font-family:var(--mono);font-weight:700;color:var(--pink);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">SMM</div>
       <div class="cfg-field">
-        <label>Onglet SMM</label>
+        <label>URL Apps Script — fichier SMM</label>
+        <input id="in-url-smm" placeholder="https://script.google.com/macros/s/…/exec"/>
+        <div class="cfg-hint">Depuis "Archipel · SMM" → Extensions → Apps Script → Déployer</div>
+      </div>
+      <div class="cfg-field">
+        <label>Nom de l’onglet</label>
         <input id="in-tab-smm" value="smm" placeholder="smm"/>
       </div>
-      <div class="cfg-model">
-        <div class="cfg-model-title">Colonnes requises — onglet smm</div>
-        <div class="cfg-model-row">
-          <div class="cfg-col col-key">date</div>
-          <div class="cfg-col col-smm">reach_fb</div>
-          <div class="cfg-col col-smm">reach_ig</div>
-          <div class="cfg-col col-smm">reach_li</div>
-        </div>
-        <div class="cfg-model-row">
-          <div class="cfg-col col-smm">followers_fb</div>
-          <div class="cfg-col col-smm">followers_ig</div>
-          <div class="cfg-col col-smm">followers_li</div>
-          <div class="cfg-col col-smm">followers_tt</div>
-        </div>
-        <div class="cfg-model-row">
-          <div class="cfg-col col-smm">engagement_fb</div>
-          <div class="cfg-col col-smm">engagement_ig</div>
-          <div class="cfg-col col-smm">engagement_li</div>
-          <div class="cfg-col col-smm">posts_total</div>
-        </div>
-      </div>
     </div>
 
-    <!-- PROD -->
-    <div class="cfg-sheet-block" id="cfg-prod">
+    <div style="border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px">
+      <div style="font-size:10px;font-family:var(--mono);font-weight:700;color:var(--purple);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Prod / Créa</div>
       <div class="cfg-field">
-        <label>Onglet Prod / Créa</label>
-        <input id="in-tab-prod" value="prod" placeholder="prod"/>
+        <label>URL Apps Script — fichier Prod</label>
+        <input id="in-url-prod" placeholder="https://script.google.com/macros/s/…/exec"/>
+        <div class="cfg-hint">Depuis "Archipel · Prod" → Extensions → Apps Script → Déployer</div>
       </div>
-      <div class="cfg-model">
-        <div class="cfg-model-title">Colonnes requises — onglet prod</div>
-        <div class="cfg-model-row">
-          <div class="cfg-col col-key">date</div>
-          <div class="cfg-col col-prod">creas_produites</div>
-          <div class="cfg-col col-prod">modifs</div>
-          <div class="cfg-col col-prod">videos</div>
-        </div>
-        <div class="cfg-model-row">
-          <div class="cfg-col col-prod">visuels</div>
-          <div class="cfg-col col-prod">copies</div>
-          <div class="cfg-col col-prod">validees</div>
-          <div class="cfg-col col-prod">refusees</div>
-        </div>
+      <div class="cfg-field">
+        <label>Nom de l’onglet</label>
+        <input id="in-tab-prod" value="prod" placeholder="prod"/>
       </div>
     </div>
 
