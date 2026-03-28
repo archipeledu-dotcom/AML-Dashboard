@@ -187,57 +187,24 @@ body{font-family:var(--sans);background:var(--gray);color:var(--txt);min-height:
     <div class="cfg-title">Connecter Google Sheets</div>
     <div class="cfg-sub">Connectez le fichier SMM. Vue SMM uniquement.</div>
 
-    <div style="border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px">
-      <div style="font-size:10px;font-family:var(--mono);font-weight:700;color:var(--blue);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Performance Online</div>
+        <div style="border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px">
+      <div style="font-size:10px;font-family:var(--mono);font-weight:700;color:#993556;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">SMM</div>
       <div class="cfg-field">
-        <label>URL Apps Script &#8212; fichier Performance</label>
-        <input id="in-url-perf" style="display:none" placeholder="https://script.google.com/macros/s/&#8230;/exec"/>
-        <div class="cfg-hint">Depuis "Archipel &#183; Performance" &#8594; Extensions &#8594; Apps Script &#8594; D&#233;ployer</div>
-      </div>
-      <div class="cfg-field">
-        <label>Nom de l&#8217;onglet</label>
-        <input id="in-tab-perf" value="performance" placeholder="performance"/>
-      </div>
-    </div>
-
-    <div style="border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px">
-      <div style="font-size:10px;font-family:var(--mono);font-weight:700;color:var(--pink);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">SMM</div>
-      <div class="cfg-field">
-        <label>URL Apps Script &#8212; fichier SMM</label>
+        <label>URL Apps Script</label>
         <input id="in-url-smm" placeholder="https://script.google.com/macros/s/&#8230;/exec"/>
-        <div class="cfg-hint">Depuis "Archipel &#183; SMM" &#8594; Extensions &#8594; Apps Script &#8594; D&#233;ployer</div>
-      </div>
-      <div class="cfg-field">
-        <label>Nom de l&#8217;onglet</label>
-        <input id="in-tab-smm" value="smm" placeholder="smm"/>
-      </div>
-    </div>
-
-    <div style="border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px">
-      <div style="font-size:10px;font-family:var(--mono);font-weight:700;color:var(--purple);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Prod / Cr&#233;a</div>
-      <div class="cfg-field">
-        <label>URL Apps Script &#8212; fichier Prod</label>
-        <input id="in-url-prod" style="display:none" placeholder="https://script.google.com/macros/s/&#8230;/exec"/>
-        <div class="cfg-hint">Depuis "Archipel &#183; Prod" &#8594; Extensions &#8594; Apps Script &#8594; D&#233;ployer</div>
-      </div>
-      <div class="cfg-field">
-        <label>Nom de l&#8217;onglet</label>
-        <input id="in-tab-prod" value="prod" placeholder="prod"/>
-      </div>
-    </div>
-
-    <div style="border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px">
-      <div style="font-size:10px;font-family:var(--mono);font-weight:700;color:#3b6d11;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Performance Centres</div>
-      <div class="cfg-field">
-        <label>URL Apps Script &#8212; fichier Centres</label>
-        <input id="in-url-centres" style="display:none" placeholder="https://script.google.com/macros/s/&#8230;/exec"/>
-        <div class="cfg-hint">Depuis "Archipel &#183; Centres" &#8594; Extensions &#8594; Apps Script &#8594; D&#233;ployer</div>
+        <div class="cfg-hint">Depuis "Archipel &middot; SMM" &rarr; Extensions &rarr; Apps Script &rarr; D&eacute;ployer</div>
       </div>
       <div class="cfg-field">
         <label>Nom de l'onglet</label>
-        <input id="in-tab-centres" value="centres" placeholder="centres"/>
+        <input id="in-tab-smm" value="smm" placeholder="smm"/>
       </div>
     </div>
+    <input type="hidden" id="in-url-perf" value=""/>
+    <input type="hidden" id="in-tab-perf" value="performance"/>
+    <input type="hidden" id="in-url-prod" value=""/>
+    <input type="hidden" id="in-tab-prod" value="prod"/>
+    <input type="hidden" id="in-url-centres" value=""/>
+    <input type="hidden" id="in-tab-centres" value="centres"/>
     <button class="cfg-btn" id="cfg-btn" onclick="connectAll()">Connecter et charger les donn&#233;es</button>
     <div class="cfg-err" id="cfg-err"></div>
     <div class="cfg-sep"></div>
