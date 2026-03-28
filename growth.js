@@ -178,13 +178,13 @@ function setPeriod(p, el) {
   el.classList.add('on');
   const items = getPeriodItems();
   if(!items.length){ wIdx=0; renderAll(); return; }
-  // Find today's period and jump to it
   const today = new Date().toISOString().slice(0,10);
   let targetKey;
   if(p === 'day') targetKey = today;
   else if(p === 'week') targetKey = isoWeek(today);
   else if(p === 'month') targetKey = today.slice(0,7);
   const idx = items.findIndex(i=>i.key===targetKey);
+  // If today's period found use it, otherwise use last period with data
   wIdx = idx >= 0 ? idx : items.length - 1;
   renderAll();
 }
@@ -837,8 +837,13 @@ function loadDemo() {
       setStatus('live','Connecte '+(rP.length+rS.length+rPr.length+rC.length)+' lignes');
       setUptime(); renderAll();
       // Force Performance Online as default tab
+      document.querySelectorAll('.stab').forEach(function(t){t.classList.remove('on');});
+      document.querySelectorAll('.section').forEach(function(s){s.classList.remove('on');});
       var perfTab = document.querySelector('.stab.perf');
-      if(perfTab) switchSection('perf', perfTab);
+      if(perfTab) perfTab.classList.add('on');
+      var perfSec = document.getElementById('sec-perf');
+      if(perfSec) perfSec.classList.add('on');
+      activeSection = 'perf';
     } catch(e){ setStatus('err','Reconnexion requise'); }
   }
 })();
