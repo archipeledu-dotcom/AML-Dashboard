@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Archipel &#183; Dashboard Marketing</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --teal:#0f6e56;--teal0:#e1f5ee;--teal1:#9fe1cb;
+  --amber:#ba7517;--amber0:#faeeda;
+  --coral:#d85a30;--coral0:#faece7;
+  --blue:#185fa5;--blue0:#e6f1fb;
+  --pink:#993556;--pink0:#fbeaf0;
+  --purple:#534ab7;--purple0:#eeedfe;
+  --green:#3b6d11;--green0:#eaf3de;
+  --gray:#f5f4f0;--border:#e0ddd6;
+  --txt:#1a1a1a;--muted:#888;--hint:#bbb;
+  --card:#fff;--mono:'Courier New',monospace;--sans:Arial,sans-serif
+}
+body{font-family:var(--sans);background:var(--gray);color:var(--txt);min-height:100vh}
+
+/* &#9552;&#9552;&#9552; CONFIG &#9552;&#9552;&#9552; */
+#cfg{position:fixed;inset:0;background:rgba(245,244,240,0.98);z-index:300;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+.cfg-box{background:#fff;border:1px solid var(--border);border-radius:16px;padding:36px 40px;max-width:580px;width:100%}
+.cfg-logo{font-size:10px;font-family:var(--mono);letter-spacing:.2em;color:var(--hint);text-transform:uppercase;margin-bottom:8px}
+.cfg-title{font-size:22px;font-weight:700;margin-bottom:6px}
+.cfg-sub{font-size:12px;font-family:var(--mono);color:var(--muted);line-height:1.7;margin-bottom:20px}
+.cfg-field{margin-bottom:11px}
+.cfg-field label{display:block;font-size:10px;font-family:var(--mono);color:var(--muted);margin-bottom:4px;letter-spacing:.05em;text-transform:uppercase}
+.cfg-field input{width:100%;font-size:13px;font-family:var(--mono);padding:10px 14px;border:1px solid var(--border);border-radius:8px;outline:none;color:var(--txt)}
+.cfg-field input:focus{border-color:var(--teal)}
+.cfg-hint{font-size:10px;font-family:var(--mono);color:var(--hint);margin-top:3px;line-height:1.5}
+.cfg-tabs{display:flex;gap:6px;margin-bottom:16px}
+.cfg-tab{flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);font-size:11px;font-family:var(--mono);text-align:center;cursor:pointer;color:var(--muted);transition:.12s}
+.cfg-tab.on{background:var(--teal);color:var(--teal0);border-color:var(--teal)}
+.cfg-sheet-block{display:none}
+.cfg-sheet-block.on{display:block}
+.cfg-btn{width:100%;font-size:13px;font-family:var(--mono);font-weight:700;padding:12px;border-radius:8px;cursor:pointer;border:none;background:var(--teal);color:var(--teal0);margin-top:8px}
+.cfg-btn:hover{background:#085041}
+.cfg-btn:disabled{background:var(--border);color:var(--muted);cursor:not-allowed}
+.cfg-err{font-size:11px;font-family:var(--mono);color:var(--coral);margin-top:8px;min-height:16px;line-height:1.5}
+.cfg-demo{font-size:11px;font-family:var(--mono);color:var(--blue);text-align:center;margin-top:10px;cursor:pointer;text-decoration:underline}
+.cfg-sep{height:1px;background:var(--border);margin:16px 0}
+.cfg-model{background:var(--gray);border-radius:8px;padding:12px 14px;margin-top:14px}
+.cfg-model-title{font-size:10px;font-family:var(--mono);color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
+.cfg-model-row{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:4px}
+.cfg-col{font-size:9px;font-family:var(--mono);padding:4px 6px;border-radius:4px;text-align:center}
+.col-key{background:var(--teal0);color:var(--teal)}
+.col-perf{background:var(--blue0);color:var(--blue)}
+.col-smm{background:var(--pink0);color:var(--pink)}
+.col-prod{background:var(--purple0);color:var(--purple)}
+
+/* &#9552;&#9552;&#9552; NAV &#9552;&#9552;&#9552; */
+.nav{background:#fff;border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:100}
+.nav-l{display:flex;align-items:center;gap:14px}
+.nav-brand{font-size:10px;letter-spacing:.18em;color:var(--hint);text-transform:uppercase;font-family:var(--mono)}
+.nav-title{font-size:15px;font-weight:700}
+.status{display:flex;align-items:center;gap:5px;font-size:10px;font-family:var(--mono)}
+.sdot{width:7px;height:7px;border-radius:50%}
+.nav-r{display:flex;gap:6px;align-items:center}
+.nbtn{font-size:11px;font-family:var(--mono);padding:6px 14px;border-radius:20px;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--txt);display:flex;align-items:center;gap:5px;transition:.12s}
+.nbtn:hover{background:var(--gray)}
+.nbtn:disabled{opacity:.4;cursor:not-allowed}
+.nbtn-p{background:var(--teal);color:var(--teal0);border-color:var(--teal)}
+.nbtn-p:hover{background:#085041}
+#uptime{font-size:10px;font-family:var(--mono);color:var(--hint)}
+.spin{width:13px;height:13px;border:2px solid rgba(255,255,255,0.35);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;display:none}
+.spin.on{display:inline-block}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* &#9552;&#9552;&#9552; SECTION TABS &#9552;&#9552;&#9552; */
+.period-sel{display:flex;gap:3px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:3px}
+.pbtn{font-size:11px;font-family:var(--mono);padding:5px 14px;border-radius:16px;cursor:pointer;border:none;background:transparent;color:var(--muted);transition:.12s}
+.pbtn:hover{background:var(--gray)}
+.pbtn.on{background:var(--teal);color:var(--teal0)}
+.kpi-cmp{font-size:12px;font-family:var(--mono);font-weight:700;margin-top:6px;padding:4px 10px;border-radius:6px;display:inline-block}
+.kpi-cmp.up{background:var(--teal0);color:var(--teal)}
+.kpi-cmp.dn{background:var(--coral0);color:var(--coral)}
+.kpi-cmp.fl{background:var(--gray);color:var(--muted)}
+.section-tabs{display:flex;gap:0;margin-bottom:20px;border-bottom:1px solid var(--border)}
+.stab{font-size:12px;font-family:var(--mono);padding:10px 20px;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;transition:.12s}
+.stab:hover{color:var(--txt)}
+.stab.on{color:var(--txt);font-weight:700;border-bottom-color:var(--txt)}
+.stab.perf.on{color:var(--blue);border-bottom-color:var(--blue)}
+.stab.smm.on{color:var(--pink);border-bottom-color:var(--pink)}
+.stab.prod.on{color:var(--purple);border-bottom-color:var(--purple)}
+.stab.cent.on{color:#3b6d11;border-bottom-color:#3b6d11}
+
+/* &#9552;&#9552;&#9552; WEEK NAV &#9552;&#9552;&#9552; */
+.main{padding:22px}
+.wbar{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.winfo{flex:1}
+.wtitle{font-size:24px;font-weight:700;line-height:1}
+.wsub{font-size:11px;font-family:var(--mono);color:var(--hint);margin-top:4px}
+.wbtn{font-size:12px;font-family:var(--mono);padding:7px 16px;border-radius:8px;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--txt)}
+.wbtn:hover{background:var(--gray)}
+.wbtn:disabled{opacity:.35;cursor:not-allowed}
+.wctr{font-size:11px;font-family:var(--mono);color:var(--muted);min-width:80px;text-align:center}
+
+/* &#9552;&#9552;&#9552; SECTION CONTENT &#9552;&#9552;&#9552; */
+.section{display:none}
+.section.on{display:block}
+
+/* &#9552;&#9552;&#9552; KPIs &#9552;&#9552;&#9552; */
+.kpis{display:grid;gap:10px;margin-bottom:12px}
+.kpis-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.kpis-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.kpis-5{grid-template-columns:repeat(5,minmax(0,1fr))}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:13px 15px;position:relative;overflow:hidden}
+.kpi-bar{position:absolute;left:0;top:0;bottom:0;width:3px}
+.kl{font-size:9px;font-family:var(--mono);color:var(--muted);letter-spacing:.07em;text-transform:uppercase;margin-bottom:5px}
+.kv{font-size:20px;font-weight:700;line-height:1}
+.kd{font-size:10px;font-family:var(--mono);margin-top:4px}
+.ko{font-size:9px;font-family:var(--mono);color:var(--hint);margin-top:2px}
+.up{color:var(--teal)}.dn{color:var(--coral)}.fl{color:var(--hint)}
+
+/* &#9552;&#9552;&#9552; CARDS &#9552;&#9552;&#9552; */
+.g2{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:10px;margin-bottom:10px}
+.g2e{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:10px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:15px 17px}
+.ct{font-size:9px;font-family:var(--mono);letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.badge{font-size:9px;font-family:var(--mono);padding:2px 7px;border-radius:4px}
+.bg{background:var(--teal0);color:var(--teal)}
+.bb{background:var(--blue0);color:var(--blue)}
+.bp{background:var(--pink0);color:var(--pink)}
+.bpu{background:var(--purple0);color:var(--purple)}
+.ba{background:var(--amber0);color:var(--amber)}
+.sep{height:1px;background:var(--border);margin:10px 0}
+.tag{display:inline-block;font-size:9px;font-family:var(--mono);padding:1px 6px;border-radius:4px;margin-left:3px}
+
+/* &#9552;&#9552;&#9552; CAMP TABLE &#9552;&#9552;&#9552; */
+.ctable{width:100%;border-collapse:collapse}
+.ctable th{font-size:9px;font-family:var(--mono);color:var(--muted);font-weight:400;text-transform:uppercase;letter-spacing:.06em;padding:6px 8px;text-align:right;border-bottom:1px solid var(--border)}
+.ctable th:first-child{text-align:left}
+.ctable td{padding:8px 8px;text-align:right;border-bottom:1px solid #f5f3ef;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.ctable td:first-child{text-align:left;color:var(--txt);font-weight:500;font-size:12px}
+.ctable tr:last-child td{border-bottom:none}
+
+/* &#9552;&#9552;&#9552; COMPARISON BARS &#9552;&#9552;&#9552; */
+.cmp-row{margin-bottom:10px}
+.cmp-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.cmp-name{font-size:11px;font-family:var(--mono);color:var(--muted)}
+.cmp-vals{display:flex;gap:6px;align-items:center;font-family:var(--mono)}
+.cmp-prev{font-size:10px;color:var(--hint)}
+.cmp-cur{font-size:11px;font-weight:700}
+.cmp-pct{font-size:10px}
+.bbar{height:7px;background:var(--gray);border-radius:4px;overflow:hidden;position:relative}
+.bprev{position:absolute;height:100%;border-radius:4px;background:var(--border)}
+.bcur{position:absolute;height:100%;border-radius:4px;transition:width .5s}
+
+/* &#9552;&#9552;&#9552; GOV TABLE &#9552;&#9552;&#9552; */
+.gov-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f5f3ef}
+.gov-row:last-child{border-bottom:none}
+.gov-name{font-size:12px;font-weight:500;flex:1}
+.gov-bar-bg{flex:2;height:6px;background:var(--gray);border-radius:3px;overflow:hidden}
+.gov-bar{height:100%;border-radius:3px;background:var(--blue)}
+.gov-val{font-size:11px;font-family:var(--mono);color:var(--muted);min-width:50px;text-align:right}
+.gov-pct{font-size:10px;font-family:var(--mono);min-width:36px;text-align:right;color:var(--hint)}
+
+/* &#9552;&#9552;&#9552; SMM CANAL &#9552;&#9552;&#9552; */
+.canal-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px}
+.canal-card{background:var(--gray);border-radius:10px;padding:12px 14px}
+.canal-name{font-size:10px;font-family:var(--mono);color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px}
+.canal-val{font-size:20px;font-weight:700;line-height:1;margin-bottom:3px}
+.canal-delta{font-size:10px;font-family:var(--mono)}
+.canal-sub{font-size:9px;font-family:var(--mono);color:var(--hint);margin-top:2px}
+
+/* &#9552;&#9552;&#9552; PROD ITEMS &#9552;&#9552;&#9552; */
+.prod-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f5f3ef}
+.prod-row:last-child{border-bottom:none}
+.prod-label{font-size:12px;color:var(--txt)}
+.prod-val{font-size:16px;font-weight:700;font-family:var(--mono)}
+
+.empty{display:flex;align-items:center;justify-content:center;padding:40px;font-size:11px;font-family:var(--mono);color:var(--hint)}
+
+@media print{.nav,.wbar .wbtn,.wbar .wctr,.section-tabs,#cfg{display:none!important}.section{display:block!important}.main{padding:0}}
+</style>
+</head>
+<body>
+
+<!-- &#9552;&#9552;&#9552;&#9552; CONFIG &#9552;&#9552;&#9552;&#9552; -->
+<div id="cfg">
+  <div class="cfg-box">
+    <div class="cfg-logo">Archipel &#183; Marketing ops</div>
+    <div class="cfg-title">Connecter Google Sheets</div>
+    <div class="cfg-sub">Connectez le fichier SMM. Vue SMM uniquement.</div>
+
+    <div style="border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px">
+      <div style="font-size:10px;font-family:var(--mono);font-weight:700;color:var(--blue);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Performance Online</div>
+      <div class="cfg-field">
+        <label>URL Apps Script &#8212; fichier Performance</label>
+        <input id="in-url-perf" style="display:none" placeholder="https://script.google.com/macros/s/&#8230;/exec"/>
+        <div class="cfg-hint">Depuis "Archipel &#183; Performance" &#8594; Extensions &#8594; Apps Script &#8594; D&#233;ployer</div>
+      </div>
+      <div class="cfg-field">
+        <label>Nom de l&#8217;onglet</label>
+        <input id="in-tab-perf" value="performance" placeholder="performance"/>
+      </div>
+    </div>
+
+    <div style="border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px">
+      <div style="font-size:10px;font-family:var(--mono);font-weight:700;color:var(--pink);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">SMM</div>
+      <div class="cfg-field">
+        <label>URL Apps Script &#8212; fichier SMM</label>
+        <input id="in-url-smm" placeholder="https://script.google.com/macros/s/&#8230;/exec"/>
+        <div class="cfg-hint">Depuis "Archipel &#183; SMM" &#8594; Extensions &#8594; Apps Script &#8594; D&#233;ployer</div>
+      </div>
+      <div class="cfg-field">
+        <label>Nom de l&#8217;onglet</label>
+        <input id="in-tab-smm" value="smm" placeholder="smm"/>
+      </div>
+    </div>
+
+    <div style="border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px">
+      <div style="font-size:10px;font-family:var(--mono);font-weight:700;color:var(--purple);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Prod / Cr&#233;a</div>
+      <div class="cfg-field">
+        <label>URL Apps Script &#8212; fichier Prod</label>
+        <input id="in-url-prod" style="display:none" placeholder="https://script.google.com/macros/s/&#8230;/exec"/>
+        <div class="cfg-hint">Depuis "Archipel &#183; Prod" &#8594; Extensions &#8594; Apps Script &#8594; D&#233;ployer</div>
+      </div>
+      <div class="cfg-field">
+        <label>Nom de l&#8217;onglet</label>
+        <input id="in-tab-prod" value="prod" placeholder="prod"/>
+      </div>
+    </div>
+
+    <div style="border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px">
+      <div style="font-size:10px;font-family:var(--mono);font-weight:700;color:#3b6d11;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Performance Centres</div>
+      <div class="cfg-field">
+        <label>URL Apps Script &#8212; fichier Centres</label>
+        <input id="in-url-centres" style="display:none" placeholder="https://script.google.com/macros/s/&#8230;/exec"/>
+        <div class="cfg-hint">Depuis "Archipel &#183; Centres" &#8594; Extensions &#8594; Apps Script &#8594; D&#233;ployer</div>
+      </div>
+      <div class="cfg-field">
+        <label>Nom de l'onglet</label>
+        <input id="in-tab-centres" value="centres" placeholder="centres"/>
+      </div>
+    </div>
+    <button class="cfg-btn" id="cfg-btn" onclick="connectAll()">Connecter et charger les donn&#233;es</button>
+    <div class="cfg-err" id="cfg-err"></div>
+    <div class="cfg-sep"></div>
+    <div class="cfg-demo" onclick="loadDemo()">Tester avec donn&#233;es de d&#233;monstration &#8594;</div>
+  </div>
+</div>
+
+<!-- &#9552;&#9552;&#9552;&#9552; NAV &#9552;&#9552;&#9552;&#9552; -->
+<div class="nav">
+  <div class="nav-l">
+    <div class="nav-brand">Archipel</div>
+    <div class="nav-title">Dashboard SMM</div>
+    <div class="status">
+      <div class="sdot" id="sdot" style="background:var(--amber)"></div>
+      <span id="stxt" style="color:var(--amber);font-size:10px;font-family:var(--mono)">D&#233;mo</span>
+    </div>
+  </div>
+  <div class="nav-r">
+    <span id="uptime"></span>
+    <button class="nbtn nbtn-p" id="ref-btn" onclick="doRefresh()">
+      <div class="spin" id="spin"></div>
+      <span id="ref-lbl">Actualiser</span>
+    </button>
+    <button class="nbtn" onclick="openCfg()">Configurer</button>
+    <button class="nbtn" onclick="window.print()">Imprimer</button>
+  </div>
+</div>
+
+<!-- &#9552;&#9552;&#9552;&#9552; MAIN &#9552;&#9552;&#9552;&#9552; -->
+<div class="main">
+
+  <div class="wbar">
+    <div class="winfo">
+      <div class="wtitle" id="wtitle">&#8212;</div>
+      <div class="wsub" id="wsub"></div>
+    </div>
+    <div class="period-sel">
+      <button class="pbtn" id="pb-day" onclick="setPeriod('day',this)">Jour</button>
+      <button class="pbtn on" id="pb-week" onclick="setPeriod('week',this)">Semaine</button>
+      <button class="pbtn" id="pb-month" onclick="setPeriod('month',this)">Mois</button>
+    </div>
+    <button class="wbtn" id="wprev" onclick="changePeriod(-1)">&#8592; Pr&#233;c.</button>
+    <div class="wctr" id="wctr"></div>
+    <button class="wbtn" id="wnext" onclick="changePeriod(1)">Suiv. &#8594;</button>
+  </div>
+
+  <div class="section-tabs">
+    <div class="stab smm on" onclick="switchSection('smm',this)">SMM</div>
+  </div>
+
+  <!-- &#9552;&#9552;&#9552;&#9552; SECTION PERFORMANCE &#9552;&#9552;&#9552;&#9552; -->
+  <div class="section on" id="sec-smm">
+
+    <div class="kpis kpis-4" style="margin-bottom:12px">
+      <div class="kpi"><div class="kpi-bar" style="background:var(--pink)"></div>
+        <div class="kl">Reach total</div><div class="kv" id="s-reach">&#8212;</div>
+        <div class="kd" id="sd-reach"></div><div class="ko" id="so-reach"></div>
+      </div>
+      <div class="kpi"><div class="kpi-bar" style="background:var(--blue)"></div>
+        <div class="kl">Followers total</div><div class="kv" id="s-followers">&#8212;</div>
+        <div class="kd" id="sd-followers"></div><div class="ko" id="so-followers"></div>
+      </div>
+      <div class="kpi"><div class="kpi-bar" style="background:var(--teal)"></div>
+        <div class="kl">Engagement moy.</div><div class="kv" id="s-eng">&#8212;</div>
+        <div class="kd" id="sd-eng"></div><div class="ko" id="so-eng"></div>
+      </div>
+      <div class="kpi"><div class="kpi-bar" style="background:var(--amber)"></div>
+        <div class="kl">Posts publi&#233;s</div><div class="kv" id="s-posts">&#8212;</div>
+        <div class="kd" id="sd-posts"></div><div class="ko" id="so-posts"></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:10px">
+      <div class="ct"><span>Reach &amp; Followers par canal</span></div>
+      <div class="canal-grid" id="canal-grid"><div class="empty">Chargement&#8230;</div></div>
+    </div>
+
+    <div class="g2e">
+      <div class="card">
+        <div class="ct"><span>Reach tendance &#8212; 8 semaines</span></div>
+        <div style="position:relative;width:100%;height:170px"><canvas id="ch-smm-reach"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="ct"><span>Croissance followers &#8212; 8 semaines</span></div>
+        <div style="position:relative;width:100%;height:170px"><canvas id="ch-smm-follow"></canvas></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ct"><span>S vs S-1 &#8212; SMM</span></div>
+      <div id="cmp-smm"><div class="empty">Chargement&#8230;</div></div>
+    </div>
+
+  </div>
+
+  <!-- &#9552;&#9552;&#9552;&#9552; SECTION PROD &#9552;&#9552;&#9552;&#9552; -->
+  </div>
+
+</div>
+
+<script src="smm.js"></script>
+</body>
+</html>
