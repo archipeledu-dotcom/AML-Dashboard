@@ -176,9 +176,16 @@ function setPeriod(p, el) {
   currentPeriod = p;
   document.querySelectorAll('.pbtn').forEach(b=>b.classList.remove('on'));
   el.classList.add('on');
-  // Reset to last period
   const items = getPeriodItems();
-  wIdx = items.length - 1;
+  if(!items.length){ wIdx=0; renderAll(); return; }
+  // Find today's period and jump to it
+  const today = new Date().toISOString().slice(0,10);
+  let targetKey;
+  if(p === 'day') targetKey = today;
+  else if(p === 'week') targetKey = isoWeek(today);
+  else if(p === 'month') targetKey = today.slice(0,7);
+  const idx = items.findIndex(i=>i.key===targetKey);
+  wIdx = idx >= 0 ? idx : items.length - 1;
   renderAll();
 }
 
@@ -307,7 +314,7 @@ function renderPerf() {
   sk('leads', fn(leads),            cmpBadge(leads,pleads),     prev?lbl+' : '+fn(pleads):'');
   sk('cpl',   fc(cpl),              cmpBadge(cpl,pcpl,true),    prev?lbl+' : '+fc(pcpl):'');
   sk('tconv', fp(tconv),            cmpBadge(tconv,ptconv),     prev?lbl+' : '+fp(ptconv):'');
-  sk('roas',  roas.toFixed(1)+'&#215;',  cmpBadge(roas,proas),       prev?lbl+' : '+proas.toFixed(1)+'&#215;':'');
+  sk('roas',  roas.toFixed(1)+'x',  cmpBadge(roas,proas),       prev?lbl+' : '+proas.toFixed(1)+'x':'');
   sk('budget',fc(budget),           cmpBadge(budget,pbudget),   prev?lbl+' : '+fc(pbudget):'');
   sk('trafic',fn(trafic),           cmpBadge(trafic,ptrafic),   prev?lbl+' : '+fn(ptrafic):'');
 
@@ -364,7 +371,7 @@ function renderPerf() {
       tbody.innerHTML=arr.map(c=>{
         const cpl=c.leads?Math.round(c.budget/c.leads):0;
         const roas=c.budget?(c.leads*50/c.budget).toFixed(1):'-';
-        return `<tr><td>${c.nom}</td><td>${fc(c.budget)}</td><td>${fn(c.leads)}</td><td>${fc(cpl)}</td><td>${roas}&#215;</td></tr>`;
+        return `<tr><td>${c.nom}</td><td>${fc(c.budget)}</td><td>${fn(c.leads)}</td><td>${fc(cpl)}</td><td>${roas}x</td></tr>`;
       }).join('');
     } else {
       tbody.innerHTML='<tr><td colspan="5"><div class="empty">Pas de donnees campagne cette semaine</div></td></tr>';
@@ -584,8 +591,7 @@ function renderCentres() {
   const cRows = getCentRows(curItem);
   const pRows = prevItem ? getCentRows(prevItem) : [];
   // Debug badge - shows how many rows found
-  const dbg = document.getElementById('ct-debug');
-  if(dbg) dbg.innerHTML = 'centRows: <b>'+centRows.length+'</b> lignes | cRows periode: <b>'+cRows.length+'</b> | semaine: <b>'+(curItem&&curItem.key)+'</b> | URL_CENT: <b>'+(URL_CENT?'OK':'VIDE')+'</b>';
+
 
   function cSum(rows, f){ return rows.reduce((s,r)=>s+(+r[f]||0),0); }
   function cmpC(c,p){ if(!p) return ''; const pc=Math.round((c/p-1)*100); if(!pc) return '<span class="kpi-cmp fl">= stable</span>'; return pc>0?'<span class="kpi-cmp up">&#8593; +'+pc+'% vs prec.</span>':'<span class="kpi-cmp dn">&#8595; '+pc+'% vs prec.</span>'; }
@@ -618,6 +624,20 @@ function renderCentres() {
   sk('leads', fn(leads),            cmpC(leads,pleads),    pRows.length?lbl+' : '+fn(pleads):'');
   sk('cpl',   fc(cpl),              cmpC(cpl,pcpl,true),   pRows.length?lbl+' : '+fc(pcpl):'');
   sk('tconv', tconv.toFixed(1)+'%', cmpC(tconv,ptconv),   pRows.length?lbl+' : '+ptconv.toFixed(1)+'%':'');
+
+  // Budget, ROAS, CA/lead from perf file
+  function skc(id,val,delta,ko){ 
+    var v=document.getElementById('ct-'+id); if(v) v.textContent=val;
+    var d=document.getElementById('ctd-'+id); if(d) d.innerHTML=delta;
+    var o=document.getElementById('cto-'+id); if(o) o.textContent=ko;
+  }
+  var roas_c = budget>0 ? (ca/budget).toFixed(1)+'x' : '-';
+  var pRoas_c = pbudget>0 ? (pca/pbudget).toFixed(1)+'x' : '-';
+  var calead = leads>0 ? Math.round(ca/leads)+' DT' : '-';
+  var pCalead = pleads>0 ? Math.round(pca/pleads)+' DT' : '-';
+  skc('budgetc', fc(budget), cmpC(budget,pbudget), pRows.length?lbl+' : '+fc(pbudget):'');
+  skc('roas', roas_c, cmpC(budget>0?ca/budget:0, pbudget>0?pca/pbudget:0), pRows.length?lbl+' : '+pRoas_c:'');
+  skc('calead', calead, '', pRows.length?lbl+' : '+pCalead:'');
 
   document.getElementById('ct-total-badge').textContent = fn(leads)+' leads . '+fc(ca);
 
