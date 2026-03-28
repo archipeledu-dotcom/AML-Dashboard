@@ -1,4 +1,3 @@
-
 /* &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; STATE &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; */
 let URL_PERF='', URL_SMM='', URL_PROD='', URL_CENT='';
 let TAB_PERF='performance', TAB_SMM='smm', TAB_PROD='prod', TAB_CENT='centres';
@@ -805,6 +804,3 @@ function loadDemo() {
     } catch(e){ setStatus('err','Reconnexion requise'); }
   }
 })();
-</script>
-</body>
-</html>
