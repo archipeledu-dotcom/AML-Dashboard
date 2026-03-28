@@ -74,7 +74,7 @@ body{font-family:var(--sans);background:var(--gray);color:var(--txt);min-height:
 .pbtn{font-size:11px;font-family:var(--mono);padding:5px 14px;border-radius:16px;cursor:pointer;border:none;background:transparent;color:var(--muted);transition:.12s}
 .pbtn:hover{background:var(--gray)}
 .pbtn.on{background:var(--teal);color:var(--teal0)}
-.kpi-cmp{font-size:10px;font-family:var(--mono);margin-top:4px;padding:3px 7px;border-radius:4px;display:inline-block}
+.kpi-cmp{font-size:12px;font-family:var(--mono);font-weight:700;margin-top:6px;padding:4px 10px;border-radius:6px;display:inline-block}
 .kpi-cmp.up{background:var(--teal0);color:var(--teal)}
 .kpi-cmp.dn{background:var(--coral0);color:var(--coral)}
 .kpi-cmp.fl{background:var(--gray);color:var(--muted)}
@@ -589,7 +589,7 @@ function wDates(w) {
   return fmt(dates[0])+' – '+fmt(dates[dates.length-1]);
 }
 function fn(n){ return Math.round(n).toLocaleString('fr-FR'); }
-function fc(n){ return fn(n)+' €'; }
+function fc(n){ return fn(n)+' DT'; }
 function fp(n){ return n.toFixed(1)+'%'; }
 function fd(cur,prev,lower_is_better) {
   if(!prev) return '<span class="fl">Première semaine</span>';
