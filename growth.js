@@ -1,4 +1,3 @@
-
 /* &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; STATE &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; */
 let URL_PERF='', URL_SMM='', URL_PROD='', URL_CENT='';
 let TAB_PERF='performance', TAB_SMM='smm', TAB_PROD='prod', TAB_CENT='centres';
@@ -11,7 +10,7 @@ let perfWeeks=[], smmWeeks=[], prodWeeks=[];
 let wIdx=0;
 let currentPeriod='week'; // 'day' | 'week' | 'month'
 let chPerf, chPerfHist, chSmmReach, chSmmFollow, chProdHist;
-let activeSection='perf';
+let activeSection='perf'; // growth default
 
 /* &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; JSONP FETCH &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; */
 function fetchSheet(url, tab) {
@@ -837,6 +836,9 @@ function loadDemo() {
       document.getElementById('cfg').style.display='none';
       setStatus('live','Connecte '+(rP.length+rS.length+rPr.length+rC.length)+' lignes');
       setUptime(); renderAll();
+      // Force Performance Online as default tab
+      var perfTab = document.querySelector('.stab.perf');
+      if(perfTab) switchSection('perf', perfTab);
     } catch(e){ setStatus('err','Reconnexion requise'); }
   }
 })();
