@@ -318,6 +318,25 @@ function renderPerf() {
   sk('budget',fc(budget),           cmpBadge(budget,pbudget),   prev?lbl+' : '+fc(pbudget):'');
   sk('trafic',fn(trafic),           cmpBadge(trafic,ptrafic),   prev?lbl+' : '+fn(ptrafic):'');
 
+  // Leads joignables / injoignables
+  const joign   = wSum(cur,'leads_joignables'),   pjoign   = prev?wSum(prev,'leads_joignables'):0;
+  const injoign = wSum(cur,'leads_injoignables'), pinjoign = prev?wSum(prev,'leads_injoignables'):0;
+  const tinjoign  = (joign+injoign)>0 ? +((injoign/(joign+injoign))*100).toFixed(1) : 0;
+  const ptinjoign = (pjoign+pinjoign)>0 ? +((pinjoign/(pjoign+pinjoign))*100).toFixed(1) : 0;
+  const cpl_joign  = joign  ? Math.round(budget/joign)  : 0;
+  const pcpl_joign = pjoign ? Math.round(pbudget/pjoign) : 0;
+
+  function skp(id,val,delta,ko){
+    var v=document.getElementById('p-'+id); if(v) v.textContent=val;
+    var d=document.getElementById('pd-'+id); if(d) d.innerHTML=delta;
+    var o=document.getElementById('po-'+id); if(o) o.textContent=ko;
+  }
+  skp('cpl-gen',  fc(cpl),           cmpBadge(cpl,pcpl,true),          prev?lbl+' : '+fc(pcpl):'');
+  skp('joign',    fn(joign),          cmpBadge(joign,pjoign),           prev?lbl+' : '+fn(pjoign):'');
+  skp('injoign',  fn(injoign),        cmpBadge(injoign,pinjoign,true),  prev?lbl+' : '+fn(pinjoign):'');
+  skp('tinjoign', tinjoign.toFixed(1)+'%', cmpBadge(tinjoign,ptinjoign,true), prev?lbl+' : '+ptinjoign.toFixed(1)+'%':'');
+  skp('cpl-joign',fc(cpl_joign),      cmpBadge(cpl_joign,pcpl_joign,true), prev?lbl+' : '+fc(pcpl_joign):'');
+
   // Chart perf semaine
   if(cur) {
     const days=[...cur.rows].sort((a,b)=>a.date.localeCompare(b.date));
