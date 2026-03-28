@@ -788,7 +788,7 @@ function renderAll() {
   renderPerf();
   renderSMM();
   renderProd();
-  if(activeSection==='cent') renderCentres();
+  renderCentres();
 }
 
 /* ══════════ RENDER PERF ══════════ */
@@ -1087,9 +1087,11 @@ function renderProd() {
 
 function getCentRows(item) {
   if(!item) return [];
-  if (currentPeriod === 'day') return centRows.filter(r=>r.date===item.key);
-  if (currentPeriod === 'month') return centRows.filter(r=>r.date&&r.date.startsWith(item.key));
-  return item.rows ? centRows.filter(r=>item.rows.some(ir=>ir.date===r.date)) : [];
+  if(currentPeriod === 'day') return centRows.filter(r=>r.date===item.key);
+  if(currentPeriod === 'month') return centRows.filter(r=>r.date&&r.date.startsWith(item.key));
+  // For week: get the week key and match centRows by same iso week
+  const itemWeekKey = item.key; // format YYYY-Www
+  return centRows.filter(r=>r.date&&isoWeek(r.date)===itemWeekKey);
 }
 
 function renderCentres() {
@@ -1112,11 +1114,9 @@ function renderCentres() {
   const leads = tel + preinsc + insc;
   const pleads= ptel + ppreinsc + pinsc;
   // Budget centre vient du fichier Performance Online (rempli par le Growth)
-  const perfCurItem = getPeriodItems()[wIdx];
-  const perfPrevItem = wIdx>0 ? getPeriodItems()[wIdx-1] : null;
-  const perfCurRows = getPerfRows(perfCurItem||{key:''});
-  const perfPrevRows = perfPrevItem ? getPerfRows(perfPrevItem) : [];
   function pSum(rows,f){ return rows.reduce((s,r)=>s+(+r[f]||0),0); }
+  const perfCurRows  = getPerfRows(curItem||{key:''});
+  const perfPrevRows = prevItem ? getPerfRows(prevItem) : [];
   const budget  = pSum(perfCurRows,'budget_centre');
   const pbudget = pSum(perfPrevRows,'budget_centre');
   const cpl   = leads ? Math.round((budget||ca)/leads) : 0;
@@ -1204,12 +1204,13 @@ function renderCentres() {
               y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#bbb',font:{size:10,family:'Courier New'}}}}}
   });
 
-  // Chart tendance 8 semaines contacts totaux
-  const hw = centWeeks.slice(-8);
-  const histData = hw.map(w=>{
-    const wr = centRows.filter(r=>w.rows&&w.rows.some(ir=>ir.date===r.date));
+  // Chart tendance 8 semaines contacts totaux — utilise les semaines de perfWeeks comme référence
+  const refW = (perfWeeks.length ? perfWeeks : smmWeeks).slice(-8);
+  const histData = refW.map(w=>{
+    const wr = centRows.filter(r=>r.date&&isoWeek(r.date)===w.key);
     return wr.reduce((s,r)=>s+(+r.contacts_tel||0)+(+r.preinscriptions||0),0);
   });
+  const hw = refW;
   if(chCentHist) chCentHist.destroy();
   chCentHist = new Chart(document.getElementById('ch-cent-hist'),{
     type:'line',
