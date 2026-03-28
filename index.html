@@ -85,6 +85,7 @@ body{font-family:var(--sans);background:var(--gray);color:var(--txt);min-height:
 .stab.perf.on{color:var(--blue);border-bottom-color:var(--blue)}
 .stab.smm.on{color:var(--pink);border-bottom-color:var(--pink)}
 .stab.prod.on{color:var(--purple);border-bottom-color:var(--purple)}
+.stab.cent.on{color:#3b6d11;border-bottom-color:#3b6d11}
 
 /* ═══ WEEK NAV ═══ */
 .main{padding:22px}
@@ -187,7 +188,7 @@ body{font-family:var(--sans);background:var(--gray);color:var(--txt);min-height:
     <div class="cfg-sub">3 fichiers Sheets séparés — un par équipe. Collez l’URL Apps Script de chaque fichier.</div>
 
     <div style="border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px">
-      <div style="font-size:10px;font-family:var(--mono);font-weight:700;color:var(--blue);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Performance &amp; Growth</div>
+      <div style="font-size:10px;font-family:var(--mono);font-weight:700;color:var(--blue);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Performance Online</div>
       <div class="cfg-field">
         <label>URL Apps Script — fichier Performance</label>
         <input id="in-url-perf" placeholder="https://script.google.com/macros/s/…/exec"/>
@@ -225,6 +226,18 @@ body{font-family:var(--sans);background:var(--gray);color:var(--txt);min-height:
       </div>
     </div>
 
+    <div style="border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px">
+      <div style="font-size:10px;font-family:var(--mono);font-weight:700;color:#3b6d11;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Performance Centres</div>
+      <div class="cfg-field">
+        <label>URL Apps Script — fichier Centres</label>
+        <input id="in-url-centres" placeholder="https://script.google.com/macros/s/…/exec"/>
+        <div class="cfg-hint">Depuis "Archipel · Centres" → Extensions → Apps Script → Déployer</div>
+      </div>
+      <div class="cfg-field">
+        <label>Nom de l'onglet</label>
+        <input id="in-tab-centres" value="centres" placeholder="centres"/>
+      </div>
+    </div>
     <button class="cfg-btn" id="cfg-btn" onclick="connectAll()">Connecter et charger les données</button>
     <div class="cfg-err" id="cfg-err"></div>
     <div class="cfg-sep"></div>
@@ -272,7 +285,8 @@ body{font-family:var(--sans);background:var(--gray);color:var(--txt);min-height:
   </div>
 
   <div class="section-tabs">
-    <div class="stab perf on" onclick="switchSection('perf',this)">Performance &amp; Growth</div>
+    <div class="stab perf on" onclick="switchSection('perf',this)">Performance Online</div>
+    <div class="stab cent" onclick="switchSection('cent',this)">Performance Centres</div>
     <div class="stab smm" onclick="switchSection('smm',this)">SMM</div>
     <div class="stab prod" onclick="switchSection('prod',this)">Prod / Créa</div>
   </div>
@@ -440,12 +454,92 @@ body{font-family:var(--sans);background:var(--gray);color:var(--txt);min-height:
 
   </div>
 
+  <!-- ════ SECTION CENTRES ════ -->
+  <div class="section" id="sec-cent">
+
+    <div class="kpis kpis-4" style="margin-bottom:10px">
+      <div class="kpi"><div class="kpi-bar" style="background:#3b6d11"></div>
+        <div class="kl">Contacts tél. total</div><div class="kv" id="ct-tel">—</div>
+        <div class="kd" id="ctd-tel"></div><div class="ko" id="cto-tel"></div>
+      </div>
+      <div class="kpi"><div class="kpi-bar" style="background:#185fa5"></div>
+        <div class="kl">Pré-inscriptions</div><div class="kv" id="ct-preinsc">—</div>
+        <div class="kd" id="ctd-preinsc"></div><div class="ko" id="cto-preinsc"></div>
+      </div>
+      <div class="kpi"><div class="kpi-bar" style="background:#ba7517"></div>
+        <div class="kl">Inscriptions campagne</div><div class="kv" id="ct-insc">—</div>
+        <div class="kd" id="ctd-insc"></div><div class="ko" id="cto-insc"></div>
+      </div>
+      <div class="kpi"><div class="kpi-bar" style="background:#993556"></div>
+        <div class="kl">Inscriptions bouche à oreille</div><div class="kv" id="ct-bao">—</div>
+        <div class="kd" id="ctd-bao"></div><div class="ko" id="cto-bao"></div>
+      </div>
+    </div>
+
+    <div class="kpis kpis-4" style="margin-bottom:12px">
+      <div class="kpi"><div class="kpi-bar" style="background:#0f6e56"></div>
+        <div class="kl">CA total (paiements)</div><div class="kv" id="ct-ca">—</div>
+        <div class="kd" id="ctd-ca"></div><div class="ko" id="cto-ca"></div>
+      </div>
+      <div class="kpi"><div class="kpi-bar" style="background:#534ab7"></div>
+        <div class="kl">Leads totaux</div><div class="kv" id="ct-leads">—</div>
+        <div class="kd" id="ctd-leads"></div><div class="ko" id="cto-leads"></div>
+      </div>
+      <div class="kpi"><div class="kpi-bar" style="background:#d85a30"></div>
+        <div class="kl">CPL centre</div><div class="kv" id="ct-cpl">—</div>
+        <div class="kd" id="ctd-cpl"></div><div class="ko" id="cto-cpl"></div>
+      </div>
+      <div class="kpi"><div class="kpi-bar" style="background:#ba7517"></div>
+        <div class="kl">Taux conversion</div><div class="kv" id="ct-tconv">—</div>
+        <div class="kd" id="ctd-tconv"></div><div class="ko" id="cto-tconv"></div>
+      </div>
+    </div>
+
+    <div class="g2">
+      <div class="card">
+        <div class="ct"><span>Performance par centre</span><span class="badge" style="background:#eaf3de;color:#3b6d11" id="ct-total-badge"></span></div>
+        <table class="ctable" id="centres-table">
+          <thead><tr>
+            <th style="text-align:left">Centre</th>
+            <th>Contacts tél</th>
+            <th>Pré-inscr.</th>
+            <th>Inscr. camp.</th>
+            <th>BAO</th>
+            <th>Paiements</th>
+            <th>Conv %</th>
+          </tr></thead>
+          <tbody id="centres-tbody"><tr><td colspan="7"><div class="empty">Aucune donnée</div></td></tr></tbody>
+        </table>
+      </div>
+      <div class="card">
+        <div class="ct"><span>S vs S-1 — centres</span></div>
+        <div id="cmp-cent"><div class="empty">Chargement…</div></div>
+      </div>
+    </div>
+
+    <div class="g2e">
+      <div class="card">
+        <div class="ct"><span>Inscriptions par centre — semaine</span></div>
+        <div style="position:relative;width:100%;height:180px"><canvas id="ch-cent-insc"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="ct"><span>Tendance contacts 8 semaines</span></div>
+        <div style="position:relative;width:100%;height:180px"><canvas id="ch-cent-hist"></canvas></div>
+      </div>
+    </div>
+
+  </div>
+
 </div>
 
 <script>
 /* ══════════ STATE ══════════ */
-let URL_PERF='', URL_SMM='', URL_PROD='';
-let TAB_PERF='performance', TAB_SMM='smm', TAB_PROD='prod';
+let URL_PERF='', URL_SMM='', URL_PROD='', URL_CENT='';
+let TAB_PERF='performance', TAB_SMM='smm', TAB_PROD='prod', TAB_CENT='centres';
+let centRows=[], centWeeks=[];
+let chCentInsc, chCentHist;
+const CENTRES = ['Menzah','Aouina','Boumhal','Bardo','Mourouj'];
+const CENT_COLORS = ['#3b6d11','#185fa5','#ba7517','#993556','#534ab7'];
 let perfRows=[], smmRows=[], prodRows=[];
 let perfWeeks=[], smmWeeks=[], prodWeeks=[];
 let wIdx=0;
@@ -565,6 +659,7 @@ function switchSection(id, el) {
   el.classList.add('on');
   document.getElementById('sec-'+id).classList.add('on');
   activeSection = id;
+  if(id==='cent') renderCentres();
 }
 
 /* ══════════ WEEK UTILS ══════════ */
@@ -693,6 +788,7 @@ function renderAll() {
   renderPerf();
   renderSMM();
   renderProd();
+  if(activeSection==='cent') renderCentres();
 }
 
 /* ══════════ RENDER PERF ══════════ */
@@ -989,6 +1085,143 @@ function renderProd() {
   });
 }
 
+function getCentRows(item) {
+  if(!item) return [];
+  if (currentPeriod === 'day') return centRows.filter(r=>r.date===item.key);
+  if (currentPeriod === 'month') return centRows.filter(r=>r.date&&r.date.startsWith(item.key));
+  return item.rows ? centRows.filter(r=>item.rows.some(ir=>ir.date===r.date)) : [];
+}
+
+function renderCentres() {
+  const items = getPeriodItems();
+  if(!items.length) return;
+  const curItem = items[wIdx], prevItem = wIdx>0?items[wIdx-1]:null;
+  const cRows = getCentRows(curItem);
+  const pRows = prevItem ? getCentRows(prevItem) : [];
+
+  function cSum(rows, f){ return rows.reduce((s,r)=>s+(+r[f]||0),0); }
+  function cmpC(c,p){ if(!p) return ''; const pc=Math.round((c/p-1)*100); if(!pc) return '<span class="kpi-cmp fl">= stable</span>'; return pc>0?'<span class="kpi-cmp up">↑ +'+pc+'% vs préc.</span>':'<span class="kpi-cmp dn">↓ '+pc+'% vs préc.</span>'; }
+  function sk(id,val,delta,ko){ document.getElementById('ct-'+id).textContent=val; document.getElementById('ctd-'+id).innerHTML=delta; document.getElementById('cto-'+id).textContent=ko; }
+  const lbl = currentPeriod==='day'?'J-1':currentPeriod==='month'?'M-1':'S-1';
+
+  const tel   = cSum(cRows,'contacts_tel'),   ptel   = cSum(pRows,'contacts_tel');
+  const preinsc= cSum(cRows,'preinscriptions'),ppreinsc=cSum(pRows,'preinscriptions');
+  const insc  = cSum(cRows,'inscriptions_campagne'), pinsc = cSum(pRows,'inscriptions_campagne');
+  const bao   = cSum(cRows,'inscriptions_bao'),      pbao  = cSum(pRows,'inscriptions_bao');
+  const ca    = cSum(cRows,'paiement_total'),         pca   = cSum(pRows,'paiement_total');
+  const leads = tel + preinsc + insc;
+  const pleads= ptel + ppreinsc + pinsc;
+  // Budget centre vient du fichier Performance Online (rempli par le Growth)
+  const perfCurItem = getPeriodItems()[wIdx];
+  const perfPrevItem = wIdx>0 ? getPeriodItems()[wIdx-1] : null;
+  const perfCurRows = getPerfRows(perfCurItem||{key:''});
+  const perfPrevRows = perfPrevItem ? getPerfRows(perfPrevItem) : [];
+  function pSum(rows,f){ return rows.reduce((s,r)=>s+(+r[f]||0),0); }
+  const budget  = pSum(perfCurRows,'budget_centre');
+  const pbudget = pSum(perfPrevRows,'budget_centre');
+  const cpl   = leads ? Math.round((budget||ca)/leads) : 0;
+  const pcpl  = pleads ? Math.round((pbudget||pca)/pleads) : 0;
+  const tconv = leads ? +((insc/leads)*100).toFixed(1) : 0;
+  const ptconv= pleads ? +((pinsc/pleads)*100).toFixed(1) : 0;
+
+  sk('tel',   fn(tel),              cmpC(tel,ptel),        pRows.length?lbl+' : '+fn(ptel):'');
+  sk('preinsc',fn(preinsc),         cmpC(preinsc,ppreinsc),pRows.length?lbl+' : '+fn(ppreinsc):'');
+  sk('insc',  fn(insc),             cmpC(insc,pinsc),      pRows.length?lbl+' : '+fn(pinsc):'');
+  sk('bao',   fn(bao),              cmpC(bao,pbao),        pRows.length?lbl+' : '+fn(pbao):'');
+  sk('ca',    fc(ca),               cmpC(ca,pca),          pRows.length?lbl+' : '+fc(pca):'');
+  sk('leads', fn(leads),            cmpC(leads,pleads),    pRows.length?lbl+' : '+fn(pleads):'');
+  sk('cpl',   fc(cpl),              cmpC(cpl,pcpl,true),   pRows.length?lbl+' : '+fc(pcpl):'');
+  sk('tconv', tconv.toFixed(1)+'%', cmpC(tconv,ptconv),   pRows.length?lbl+' : '+ptconv.toFixed(1)+'%':'');
+
+  document.getElementById('ct-total-badge').textContent = fn(leads)+' leads · '+fc(ca);
+
+  // Table par centre
+  const tbody = document.getElementById('centres-tbody');
+  if(cRows.length) {
+    const byC = {};
+    CENTRES.forEach(c=>{ byC[c]={tel:0,preinsc:0,insc:0,bao:0,ca:0}; });
+    cRows.forEach(r=>{
+      const c = r.centre;
+      if(!byC[c]) byC[c]={tel:0,preinsc:0,insc:0,bao:0,ca:0};
+      byC[c].tel    += (+r.contacts_tel||0);
+      byC[c].preinsc+= (+r.preinscriptions||0);
+      byC[c].insc   += (+r.inscriptions_campagne||0);
+      byC[c].bao    += (+r.inscriptions_bao||0);
+      byC[c].ca     += (+r.paiement_total||0);
+    });
+    tbody.innerHTML = CENTRES.map((c,i)=>{
+      const d=byC[c]||{tel:0,preinsc:0,insc:0,bao:0,ca:0};
+      const leads_c=d.tel+d.preinsc+d.insc;
+      const tconv_c=leads_c?((d.insc/leads_c)*100).toFixed(1)+'%':'—';
+      return `<tr>
+        <td style="color:${CENT_COLORS[i]};font-weight:700">${c}</td>
+        <td>${fn(d.tel)}</td><td>${fn(d.preinsc)}</td>
+        <td>${fn(d.insc)}</td><td>${fn(d.bao)}</td>
+        <td>${fc(d.ca)}</td><td>${tconv_c}</td>
+      </tr>`;
+    }).join('');
+    // Total row
+    tbody.innerHTML += `<tr style="border-top:1px solid var(--border);font-weight:700">
+      <td style="color:var(--txt)">Total</td>
+      <td>${fn(tel)}</td><td>${fn(preinsc)}</td>
+      <td>${fn(insc)}</td><td>${fn(bao)}</td>
+      <td>${fc(ca)}</td><td>${tconv.toFixed(1)}%</td>
+    </tr>`;
+  } else {
+    tbody.innerHTML='<tr><td colspan="7"><div class="empty">Aucune donnée pour cette période</div></td></tr>';
+  }
+
+  // Comparison S vs S-1
+  const elCmp = document.getElementById('cmp-cent');
+  if(!pRows.length){ elCmp.innerHTML='<div class="empty">Aucune période précédente.</div>'; }
+  else {
+    const metrics=[
+      {label:'Contacts tél',   cv:tel,    pv:ptel,    c:'#3b6d11'},
+      {label:'Pré-inscriptions',cv:preinsc,pv:ppreinsc,c:'#185fa5'},
+      {label:'Inscriptions',   cv:insc,   pv:pinsc,   c:'#ba7517'},
+      {label:'CA (DT)',         cv:ca,     pv:pca,     c:'#0f6e56'},
+    ];
+    elCmp.innerHTML = metrics.map(m=>{
+      const max=Math.max(m.cv,m.pv)||1;
+      const pct=m.pv?Math.round((m.cv/m.pv-1)*100):0;
+      const cls=pct>0?'up':pct<0?'dn':'fl';
+      return `<div class="cmp-row"><div class="cmp-hdr"><span class="cmp-name">${m.label}</span><div class="cmp-vals"><span class="cmp-prev">${fn(m.pv)}</span><span style="font-size:9px;color:var(--hint)">→</span><span class="cmp-cur">${fn(m.cv)}</span><span class="cmp-pct ${cls}">${pct>0?'+':''}${pct}%</span></div></div><div class="bbar"><div class="bprev" style="width:${Math.round(m.pv/max*100)}%"></div><div class="bcur" style="width:${Math.round(m.cv/max*100)}%;background:${m.c};opacity:.8"></div></div></div>`;
+    }).join('');
+  }
+
+  // Chart inscriptions par centre
+  const byCentInsc = CENTRES.map(c=>{
+    return cRows.filter(r=>r.centre===c).reduce((s,r)=>s+(+r.inscriptions_campagne||0),0);
+  });
+  if(chCentInsc) chCentInsc.destroy();
+  chCentInsc = new Chart(document.getElementById('ch-cent-insc'),{
+    type:'bar',
+    data:{labels:CENTRES, datasets:[
+      {label:'Inscriptions',data:byCentInsc,backgroundColor:CENT_COLORS.map(c=>c+'cc'),borderRadius:6}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{grid:{display:false},ticks:{color:'#bbb',font:{size:11,family:'Courier New'}}},
+              y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#bbb',font:{size:10,family:'Courier New'}}}}}
+  });
+
+  // Chart tendance 8 semaines contacts totaux
+  const hw = centWeeks.slice(-8);
+  const histData = hw.map(w=>{
+    const wr = centRows.filter(r=>w.rows&&w.rows.some(ir=>ir.date===r.date));
+    return wr.reduce((s,r)=>s+(+r.contacts_tel||0)+(+r.preinscriptions||0),0);
+  });
+  if(chCentHist) chCentHist.destroy();
+  chCentHist = new Chart(document.getElementById('ch-cent-hist'),{
+    type:'line',
+    data:{labels:hw.map(w=>'S'+wNum(w)),datasets:[
+      {label:'Leads',data:histData,borderColor:'#3b6d11',backgroundColor:'rgba(59,109,17,0.08)',borderWidth:2,pointRadius:4,pointBackgroundColor:'#3b6d11',tension:0.35,fill:true}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{grid:{display:false},ticks:{color:'#bbb',font:{size:10,family:'Courier New'}}},
+              y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#bbb',font:{size:10,family:'Courier New'}}}}}
+  });
+}
+
 function loadDemo() {
   function makeRows(fields, weeks=12) {
     const rows=[], start=new Date('2026-01-05');
@@ -1024,7 +1257,25 @@ function loadDemo() {
   ]);
   perfWeeks=buildWeeks(perfRows); smmWeeks=buildWeeks(smmRows); prodWeeks=buildWeeks(prodRows);
   wIdx=perfWeeks.length-1;
-  URL_PERF='DEMO'; URL_SMM='DEMO'; URL_PROD='DEMO';
+  centRows = [];
+  const centresNames = ['Menzah','Aouina','Boumhal','Bardo','Mourouj'];
+  for(let w=0;w<12;w++) for(let d=0;d<5;d++){
+    const dt=new Date('2026-01-05'); dt.setDate(dt.getDate()+w*7+d);
+    const dateStr=dt.toISOString().slice(0,10);
+    centresNames.forEach(c=>{
+      centRows.push({
+        date:dateStr, centre:c,
+        contacts_tel:Math.round(5+Math.random()*10),
+        preinscriptions:Math.round(2+Math.random()*5),
+        inscriptions_campagne:Math.round(1+Math.random()*3),
+        inscriptions_bao:Math.round(Math.random()*2),
+        paiement_total:Math.round(800+Math.random()*1200),
+        budget_centre:Math.round(200+w*20+Math.random()*100)
+      });
+    });
+  }
+  centWeeks=buildWeeks(centRows);
+  URL_PERF='DEMO'; URL_SMM='DEMO'; URL_PROD='DEMO'; URL_CENT='DEMO';
   document.getElementById('cfg').style.display='none';
   setStatus('demo','Mode démo'); setUptime(); renderAll();
 }
@@ -1034,29 +1285,34 @@ function loadDemo() {
   const uP  = localStorage.getItem('archi_url_perf') || '';
   const uS  = localStorage.getItem('archi_url_smm')  || '';
   const uPr = localStorage.getItem('archi_url_prod') || '';
+  const uC  = localStorage.getItem('archi_url_cent') || '';
   const tP  = localStorage.getItem('archi_tab_perf') || 'performance';
   const tS  = localStorage.getItem('archi_tab_smm')  || 'smm';
   const tPr = localStorage.getItem('archi_tab_prod') || 'prod';
-  if(uP || uS || uPr){
+  const tC  = localStorage.getItem('archi_tab_cent') || 'centres';
+  if(uP || uS || uPr || uC){
     if(uP) document.getElementById('in-url-perf').value=uP;
     if(uS) document.getElementById('in-url-smm').value=uS;
     if(uPr) document.getElementById('in-url-prod').value=uPr;
+    if(uC) document.getElementById('in-url-centres').value=uC;
     document.getElementById('in-tab-perf').value=tP;
     document.getElementById('in-tab-smm').value=tS;
     document.getElementById('in-tab-prod').value=tPr;
-    URL_PERF=uP; URL_SMM=uS; URL_PROD=uPr;
-    TAB_PERF=tP; TAB_SMM=tS; TAB_PROD=tPr;
+    document.getElementById('in-tab-centres').value=tC;
+    URL_PERF=uP; URL_SMM=uS; URL_PROD=uPr; URL_CENT=uC;
+    TAB_PERF=tP; TAB_SMM=tS; TAB_PROD=tPr; TAB_CENT=tC;
     try{
-      const [rP,rS,rPr]=await Promise.all([
+      const [rP,rS,rPr,rC]=await Promise.all([
         uP  ? fetchSheet(uP,  tP)  : Promise.resolve([]),
         uS  ? fetchSheet(uS,  tS)  : Promise.resolve([]),
-        uPr ? fetchSheet(uPr, tPr) : Promise.resolve([])
+        uPr ? fetchSheet(uPr, tPr) : Promise.resolve([]),
+        uC  ? fetchSheet(uC,  tC)  : Promise.resolve([])
       ]);
-      perfRows=rP; smmRows=rS; prodRows=rPr;
-      perfWeeks=buildWeeks(rP); smmWeeks=buildWeeks(rS); prodWeeks=buildWeeks(rPr);
-      wIdx=Math.max(perfWeeks.length,smmWeeks.length,prodWeeks.length)-1;
+      perfRows=rP; smmRows=rS; prodRows=rPr; centRows=rC;
+      perfWeeks=buildWeeks(rP); smmWeeks=buildWeeks(rS); prodWeeks=buildWeeks(rPr); centWeeks=buildWeeks(rC);
+      wIdx=Math.max(perfWeeks.length,smmWeeks.length,prodWeeks.length,centWeeks.length)-1;
       document.getElementById('cfg').style.display='none';
-      setStatus('live','Connecté · '+(rP.length+rS.length+rPr.length)+' entrées');
+      setStatus('live','Connecté · '+(rP.length+rS.length+rPr.length+rC.length)+' entrées');
       setUptime(); renderAll();
     } catch(e){ setStatus('err','Reconnexion requise'); }
   }
