@@ -581,23 +581,24 @@ async function connectAll() {
   const urlP  = document.getElementById('in-url-perf').value.trim();
   const urlS  = document.getElementById('in-url-smm').value.trim();
   const urlPr = document.getElementById('in-url-prod').value.trim();
+  const urlC  = document.getElementById('in-url-centres').value.trim();
   const tabP  = document.getElementById('in-tab-perf').value.trim() || 'performance';
   const tabS  = document.getElementById('in-tab-smm').value.trim()  || 'smm';
   const tabPr = document.getElementById('in-tab-prod').value.trim() || 'prod';
+  const tabC  = document.getElementById('in-tab-centres').value.trim() || 'centres';
   const errEl = document.getElementById('cfg-err');
   const btn   = document.getElementById('cfg-btn');
-  if (!urlP && !urlS && !urlPr) { errEl.textContent = 'Remplissez au moins une URL Apps Script.'; return; }
-  const invalid = [urlP,urlS,urlPr].filter(u=>u&&!u.includes('script.google.com'));
-  if (invalid.length) { errEl.textContent = 'Une URL ne semble pas être un Apps Script Google.'; return; }
+  if (!urlP && !urlS && !urlPr && !urlC) { errEl.textContent = 'Remplissez au moins une URL Apps Script.'; return; }
   errEl.textContent = ''; btn.textContent = 'Connexion…'; btn.disabled = true;
   try {
-    const [rP, rS, rPr] = await Promise.all([
+    const [rP, rS, rPr, rC] = await Promise.all([
       urlP  ? fetchSheet(urlP,  tabP)  : Promise.resolve([]),
       urlS  ? fetchSheet(urlS,  tabS)  : Promise.resolve([]),
-      urlPr ? fetchSheet(urlPr, tabPr) : Promise.resolve([])
+      urlPr ? fetchSheet(urlPr, tabPr) : Promise.resolve([]),
+      urlC  ? fetchSheet(urlC,  tabC)  : Promise.resolve([])
     ]);
-    URL_PERF=urlP; URL_SMM=urlS; URL_PROD=urlPr;
-    TAB_PERF=tabP; TAB_SMM=tabS; TAB_PROD=tabPr;
+    URL_PERF=urlP; URL_SMM=urlS; URL_PROD=urlPr; URL_CENT=urlC;
+    TAB_PERF=tabP; TAB_SMM=tabS; TAB_PROD=tabPr; TAB_CENT=tabC;
     localStorage.setItem('archi_url_perf', urlP);
     localStorage.setItem('archi_url_smm',  urlS);
     localStorage.setItem('archi_url_prod', urlPr);
@@ -606,18 +607,13 @@ async function connectAll() {
     localStorage.setItem('archi_tab_smm',  tabS);
     localStorage.setItem('archi_tab_prod', tabPr);
     localStorage.setItem('archi_tab_cent', tabC);
-    perfRows=rP; smmRows=rS; prodRows=rPr;
-    perfWeeks=buildWeeks(rP); smmWeeks=buildWeeks(rS); prodWeeks=buildWeeks(rPr);
-    wIdx = Math.max(perfWeeks.length, smmWeeks.length, prodWeeks.length) - 1;
+    perfRows=rP; smmRows=rS; prodRows=rPr; centRows=rC;
+    perfWeeks=buildWeeks(rP); smmWeeks=buildWeeks(rS); prodWeeks=buildWeeks(rPr); centWeeks=buildWeeks(rC);
+    wIdx = Math.max(perfWeeks.length,smmWeeks.length,prodWeeks.length,centWeeks.length) - 1;
     currentPeriod='week';
     document.getElementById('cfg').style.display = 'none';
-    setStatus('live', 'Connecté · ' + (rP.length+rS.length+rPr.length) + ' entrées');
+    setStatus('live', 'Connecté · ' + (rP.length+rS.length+rPr.length+rC.length) + ' entrées');
     setUptime(); renderAll();
-  } catch(e) {
-    errEl.textContent = e.message;
-    btn.textContent = 'Connecter et charger les données'; btn.disabled = false;
-  }
-}
 
 function openCfg() {
   document.getElementById('cfg').style.display = 'flex';
