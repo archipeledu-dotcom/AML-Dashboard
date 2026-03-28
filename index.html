@@ -624,21 +624,21 @@ function openCfg() {
 
 /* ══════════ REFRESH ══════════ */
 async function doRefresh() {
-  if (!URL_PERF && !URL_SMM && !URL_PROD) { loadDemo(); return; }
+  if (!URL_PERF && !URL_SMM && !URL_PROD && !URL_CENT) { loadDemo(); return; }
   const btn=document.getElementById('ref-btn'), spin=document.getElementById('spin');
   btn.disabled=true; spin.classList.add('on');
   document.getElementById('ref-lbl').textContent='Chargement…';
   try {
-    const [rP,rS,rPr] = await Promise.all([
-      URL_PERF  ? fetchSheet(URL_PERF,  TAB_PERF)  : Promise.resolve([]),
-      URL_SMM   ? fetchSheet(URL_SMM,   TAB_SMM)   : Promise.resolve([]),
-      URL_PROD  ? fetchSheet(URL_PROD,  TAB_PROD)  : Promise.resolve([])
+    const [rP,rS,rPr,rC] = await Promise.all([
+      URL_PERF ? fetchSheet(URL_PERF, TAB_PERF) : Promise.resolve([]),
+      URL_SMM  ? fetchSheet(URL_SMM,  TAB_SMM)  : Promise.resolve([]),
+      URL_PROD ? fetchSheet(URL_PROD, TAB_PROD) : Promise.resolve([]),
+      URL_CENT ? fetchSheet(URL_CENT, TAB_CENT) : Promise.resolve([])
     ]);
-    perfRows=rP; smmRows=rS; prodRows=rPr;
-    perfWeeks=buildWeeks(rP); smmWeeks=buildWeeks(rS); prodWeeks=buildWeeks(rPr);
-    wIdx = Math.max(perfWeeks.length, smmWeeks.length, prodWeeks.length) - 1;
-    currentPeriod='week';
-    setStatus('live','Connecté · '+(rP.length+rS.length+rPr.length)+' entrées');
+    perfRows=rP; smmRows=rS; prodRows=rPr; centRows=rC;
+    perfWeeks=buildWeeks(rP); smmWeeks=buildWeeks(rS); prodWeeks=buildWeeks(rPr); centWeeks=buildWeeks(rC);
+    wIdx = Math.max(perfWeeks.length,smmWeeks.length,prodWeeks.length,centWeeks.length) - 1;
+    setStatus('live','Connecté · '+(rP.length+rS.length+rPr.length+rC.length)+' entrées');
     setUptime(); renderAll();
   } catch(e) { setStatus('err','Erreur — '+e.message); }
   finally { btn.disabled=false; spin.classList.remove('on'); document.getElementById('ref-lbl').textContent='Actualiser'; }
@@ -1115,6 +1115,9 @@ function renderCentres() {
   const curItem = items[wIdx], prevItem = wIdx>0?items[wIdx-1]:null;
   const cRows = getCentRows(curItem);
   const pRows = prevItem ? getCentRows(prevItem) : [];
+  // Debug badge — shows how many rows found
+  const dbg = document.getElementById('ct-total-badge');
+  if(dbg) dbg.title = 'centRows total: '+centRows.length+' | cRows this period: '+cRows.length+' | item.key: '+(curItem&&curItem.key);
 
   function cSum(rows, f){ return rows.reduce((s,r)=>s+(+r[f]||0),0); }
   function cmpC(c,p){ if(!p) return ''; const pc=Math.round((c/p-1)*100); if(!pc) return '<span class="kpi-cmp fl">= stable</span>'; return pc>0?'<span class="kpi-cmp up">↑ +'+pc+'% vs préc.</span>':'<span class="kpi-cmp dn">↓ '+pc+'% vs préc.</span>'; }
@@ -1183,7 +1186,7 @@ function renderCentres() {
       <td>${fc(ca)}</td><td>${tconv.toFixed(1)}%</td>
     </tr>`;
   } else {
-    tbody.innerHTML='<tr><td colspan="7"><div class="empty">Aucune donnée pour cette période</div></td></tr>';
+    tbody.innerHTML='<tr><td colspan="7"><div class="empty">Aucune donnée — centRows: '+centRows.length+' lignes chargées | semaine: '+(curItem&&curItem.key)+'</div></td></tr>';
   }
 
   // Comparison S vs S-1
