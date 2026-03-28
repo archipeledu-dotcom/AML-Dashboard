@@ -366,6 +366,97 @@ body{font-family:var(--sans);background:var(--gray);color:var(--txt);min-height:
   <!-- &#9552;&#9552;&#9552;&#9552; SECTION SMM &#9552;&#9552;&#9552;&#9552; -->
   </div>
 
+
+<div class="section" id="sec-cent">
+
+    <div class="kpis kpis-4" style="margin-bottom:10px">
+      <div class="kpi"><div class="kpi-bar" style="background:#3b6d11"></div>
+        <div class="kl">Contacts t&#233;l. total</div><div class="kv" id="ct-tel">&#8212;</div>
+        <div class="kd" id="ctd-tel"></div><div class="ko" id="cto-tel"></div>
+      </div>
+      <div class="kpi"><div class="kpi-bar" style="background:#185fa5"></div>
+        <div class="kl">Pr&#233;-inscriptions</div><div class="kv" id="ct-preinsc">&#8212;</div>
+        <div class="kd" id="ctd-preinsc"></div><div class="ko" id="cto-preinsc"></div>
+      </div>
+      <div class="kpi"><div class="kpi-bar" style="background:#ba7517"></div>
+        <div class="kl">Inscriptions campagne</div><div class="kv" id="ct-insc">&#8212;</div>
+        <div class="kd" id="ctd-insc"></div><div class="ko" id="cto-insc"></div>
+      </div>
+      <div class="kpi"><div class="kpi-bar" style="background:#993556"></div>
+        <div class="kl">Inscriptions bouche &#224; oreille</div><div class="kv" id="ct-bao">&#8212;</div>
+        <div class="kd" id="ctd-bao"></div><div class="ko" id="cto-bao"></div>
+      </div>
+    </div>
+
+    <div class="kpis kpis-4" style="margin-bottom:12px">
+      <div class="kpi"><div class="kpi-bar" style="background:#0f6e56"></div>
+        <div class="kl">CA total (paiements)</div><div class="kv" id="ct-ca">&#8212;</div>
+        <div class="kd" id="ctd-ca"></div><div class="ko" id="cto-ca"></div>
+      </div>
+      <div class="kpi"><div class="kpi-bar" style="background:#534ab7"></div>
+        <div class="kl">Leads totaux</div><div class="kv" id="ct-leads">&#8212;</div>
+        <div class="kd" id="ctd-leads"></div><div class="ko" id="cto-leads"></div>
+      </div>
+      <div class="kpi"><div class="kpi-bar" style="background:#d85a30"></div>
+        <div class="kl">CPL centre</div><div class="kv" id="ct-cpl">&#8212;</div>
+        <div class="kd" id="ctd-cpl"></div><div class="ko" id="cto-cpl"></div>
+      </div>
+      <div class="kpi"><div class="kpi-bar" style="background:#ba7517"></div>
+        <div class="kl">Taux conversion</div><div class="kv" id="ct-tconv">&#8212;</div>
+        <div class="kd" id="ctd-tconv"></div><div class="ko" id="cto-tconv"></div>
+      </div>
+    </div>
+
+     <div class="kpis kpis-3" style="margin-bottom:12px">
+       <div class="kpi"><div class="kpi-bar" style="background:#3b6d11"></div>
+         <div class="kl">Budget com. centre</div><div class="kv" id="ct-budgetc">&#8212;</div>
+         <div class="kd" id="ctd-budgetc"></div><div class="ko" id="cto-budgetc"></div>
+       </div>
+       <div class="kpi"><div class="kpi-bar" style="background:#185fa5"></div>
+         <div class="kl">ROAS centre</div><div class="kv" id="ct-roas">&#8212;</div>
+         <div class="kd" id="ctd-roas"></div><div class="ko" id="cto-roas"></div>
+       </div>
+       <div class="kpi"><div class="kpi-bar" style="background:#993556"></div>
+         <div class="kl">CA / lead</div><div class="kv" id="ct-calead">&#8212;</div>
+         <div class="kd" id="ctd-calead"></div><div class="ko" id="cto-calead"></div>
+       </div>
+     </div>
+
+    <div class="g2">
+      <div class="card">
+        <div class="ct"><span>Performance par centre</span><span class="badge" style="background:#eaf3de;color:#3b6d11" id="ct-total-badge"></span></div>
+        <table class="ctable" id="centres-table">
+          <thead><tr>
+            <th style="text-align:left">Centre</th>
+            <th>Contacts t&#233;l</th>
+            <th>Pr&#233;-inscr.</th>
+            <th>Inscr. camp.</th>
+            <th>BAO</th>
+            <th>Paiements</th>
+            <th>Conv %</th>
+          </tr></thead>
+          <tbody id="centres-tbody"><tr><td colspan="7"><div class="empty">Aucune donn&#233;e</div></td></tr></tbody>
+        </table>
+      </div>
+      <div class="card">
+        <div class="ct"><span>S vs S-1 &#8212; centres</span></div>
+        <div id="cmp-cent"><div class="empty">Chargement&#8230;</div></div>
+      </div>
+    </div>
+
+    <div class="g2e">
+      <div class="card">
+        <div class="ct"><span>Inscriptions par centre &#8212; semaine</span></div>
+        <div style="position:relative;width:100%;height:180px"><canvas id="ch-cent-insc"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="ct"><span>Tendance contacts 8 semaines</span></div>
+        <div style="position:relative;width:100%;height:180px"><canvas id="ch-cent-hist"></canvas></div>
+      </div>
+    </div>
+
+  </div>
+
 </div>
 
 <script src="app.js"></script>
