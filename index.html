@@ -717,21 +717,36 @@ function setPeriod(p, el) {
 function getPeriodItems() {
   if (currentPeriod === 'day') return getAllDays();
   if (currentPeriod === 'month') return getMonths();
-  return perfWeeks.length ? perfWeeks : smmWeeks.length ? smmWeeks : prodWeeks;
+  // Merge all week keys from all sources
+  const allKeys = new Set([
+    ...perfWeeks.map(w=>w.key),
+    ...smmWeeks.map(w=>w.key),
+    ...prodWeeks.map(w=>w.key),
+    ...centWeeks.map(w=>w.key)
+  ]);
+  if(!allKeys.size) return [];
+  return Array.from(allKeys).sort().map(k=>{
+    return perfWeeks.find(w=>w.key===k)
+      || smmWeeks.find(w=>w.key===k)
+      || prodWeeks.find(w=>w.key===k)
+      || centWeeks.find(w=>w.key===k)
+      || {key:k, rows:[]};
+  });
 }
 
 function getAllDays() {
   const dates = [...new Set([
     ...perfRows.map(r=>r.date),
     ...smmRows.map(r=>r.date),
-    ...prodRows.map(r=>r.date)
+    ...prodRows.map(r=>r.date),
+    ...centRows.map(r=>r.date)
   ])].sort();
   return dates.map(d=>({key:d, date:d, rows:null}));
 }
 
 function getMonths() {
   const map = {};
-  [...perfRows,...smmRows,...prodRows].forEach(r=>{
+  [...perfRows,...smmRows,...prodRows,...centRows].forEach(r=>{
     const k = r.date.slice(0,7);
     if (!map[k]) map[k] = {key:k, rows:[]};
     map[k].rows.push(r);
