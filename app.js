@@ -590,8 +590,6 @@ function renderCentres() {
   const curItem = items[wIdx], prevItem = wIdx>0?items[wIdx-1]:null;
   const cRows = getCentRows(curItem);
   const pRows = prevItem ? getCentRows(prevItem) : [];
-  // Debug badge - shows how many rows found
-
 
   function cSum(rows, f){ return rows.reduce((s,r)=>s+(+r[f]||0),0); }
   function cmpC(c,p){ if(!p) return ''; const pc=Math.round((c/p-1)*100); if(!pc) return '<span class="kpi-cmp fl">= stable</span>'; return pc>0?'<span class="kpi-cmp up">&#8593; +'+pc+'% vs prec.</span>':'<span class="kpi-cmp dn">&#8595; '+pc+'% vs prec.</span>'; }
