@@ -457,6 +457,8 @@ body{font-family:var(--sans);background:var(--gray);color:var(--txt);min-height:
   <!-- ════ SECTION CENTRES ════ -->
   <div class="section" id="sec-cent">
 
+    <div id="ct-debug" style="background:#faeeda;border-radius:8px;padding:8px 14px;font-size:11px;font-family:'Courier New',monospace;color:#633806;margin-bottom:10px">Chargement debug...</div>
+
     <div class="kpis kpis-4" style="margin-bottom:10px">
       <div class="kpi"><div class="kpi-bar" style="background:#3b6d11"></div>
         <div class="kl">Contacts tél. total</div><div class="kv" id="ct-tel">—</div>
@@ -1116,8 +1118,8 @@ function renderCentres() {
   const cRows = getCentRows(curItem);
   const pRows = prevItem ? getCentRows(prevItem) : [];
   // Debug badge — shows how many rows found
-  const dbg = document.getElementById('ct-total-badge');
-  if(dbg) dbg.title = 'centRows total: '+centRows.length+' | cRows this period: '+cRows.length+' | item.key: '+(curItem&&curItem.key);
+  const dbg = document.getElementById('ct-debug');
+  if(dbg) dbg.innerHTML = 'centRows: <b>'+centRows.length+'</b> lignes | cRows période: <b>'+cRows.length+'</b> | semaine: <b>'+(curItem&&curItem.key)+'</b> | URL_CENT: <b>'+(URL_CENT?'OK':'VIDE')+'</b>';
 
   function cSum(rows, f){ return rows.reduce((s,r)=>s+(+r[f]||0),0); }
   function cmpC(c,p){ if(!p) return ''; const pc=Math.round((c/p-1)*100); if(!pc) return '<span class="kpi-cmp fl">= stable</span>'; return pc>0?'<span class="kpi-cmp up">↑ +'+pc+'% vs préc.</span>':'<span class="kpi-cmp dn">↓ '+pc+'% vs préc.</span>'; }
