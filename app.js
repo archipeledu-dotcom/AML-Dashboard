@@ -382,15 +382,13 @@ function renderPerf() {
       if(!r.camp_nom) return;
       const n=r.camp_nom;
       if(!camps[n]) camps[n]={nom:n,budget:0,leads:0};
-      camps[n].budget+=(+r.camp_budget||0);
       camps[n].leads+=(+r.camp_leads||0);
     });
     const arr=Object.values(camps);
     if(arr.length) {
       tbody.innerHTML=arr.map(c=>{
-        const cpl=c.leads?Math.round(c.budget/c.leads):0;
-        const roas=c.budget?(c.leads*50/c.budget).toFixed(1):'-';
-        return `<tr><td>${c.nom}</td><td>${fc(c.budget)}</td><td>${fn(c.leads)}</td><td>${fc(cpl)}</td><td>${roas}x</td></tr>`;
+        const cpl = c.cpl ? fc(Math.round(c.cpl)) : (c.leads ? fc(Math.round(wSum(cur,'budget_ads')/c.leads)) : '-');
+        return `<tr><td>${c.nom}</td><td>${fn(c.leads)}</td><td>${cpl}</td></tr>`;
       }).join('');
     } else {
       tbody.innerHTML='<tr><td colspan="5"><div class="empty">Pas de donnees campagne cette semaine</div></td></tr>';
@@ -626,8 +624,8 @@ function renderCentres() {
   function pSum(rows,f){ return rows.reduce((s,r)=>s+(+r[f]||0),0); }
   const perfCurRows  = getPerfRows(curItem||{key:''});
   const perfPrevRows = prevItem ? getPerfRows(prevItem) : [];
-  const budget  = pSum(perfCurRows,'budget_centre');
-  const pbudget = pSum(perfPrevRows,'budget_centre');
+  const budget  = 0;
+  const pbudget = 0;
   const cpl   = leads ? Math.round((budget||ca)/leads) : 0;
   const pcpl  = pleads ? Math.round((pbudget||pca)/pleads) : 0;
   const tconv = leads ? +((insc/leads)*100).toFixed(1) : 0;
@@ -794,7 +792,7 @@ function loadDemo() {
         inscriptions_campagne:Math.round(1+Math.random()*3),
         inscriptions_bao:Math.round(Math.random()*2),
         paiement_total:Math.round(800+Math.random()*1200),
-        budget_centre:Math.round(200+w*20+Math.random()*100)
+        budget_centre:0
       });
     });
   }
