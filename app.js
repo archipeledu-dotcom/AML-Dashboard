@@ -76,7 +76,7 @@ async function connectAll() {
     currentPeriod='week';
     // Jump to current week by default
     (function(){
-      const today = new Date().toISOString().slice(0,10);
+      const today = (function(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); })();
       const todayWeek = isoWeek(today);
       const items = getPeriodItems();
       const idx = items.findIndex(i=>i.key===todayWeek);
@@ -187,7 +187,7 @@ function setPeriod(p, el) {
   const items = getPeriodItems();
   if(!items.length){ wIdx=0; renderAll(); return; }
   // Find today's period and jump to it
-  const today = new Date().toISOString().slice(0,10);
+  const today = (function(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); })();
   let targetKey;
   if(p === 'day') targetKey = today;
   else if(p === 'week') targetKey = isoWeek(today);
@@ -198,15 +198,42 @@ function setPeriod(p, el) {
 }
 
 function getPeriodItems() {
-  if (currentPeriod === 'day') return getAllDays();
-  if (currentPeriod === 'month') return getMonths();
-  // Merge all week keys from all sources
+  const today = (function(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); })();
+  if (currentPeriod === 'day') {
+    // Add today and next 6 days
+    const days = getAllDays();
+    const existing = new Set(days.map(d=>d.key));
+    for(let i=0; i<=6; i++){
+      const d = new Date(today); d.setDate(d.getDate()+i);
+      const k = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+      if(!existing.has(k)) { days.push({key:k,date:k,rows:[]}); existing.add(k); }
+    }
+    return days.sort((a,b)=>a.key.localeCompare(b.key));
+  }
+  if (currentPeriod === 'month') {
+    const months = getMonths();
+    const existing = new Set(months.map(m=>m.key));
+    // Add current month + next 3
+    for(let i=0; i<=3; i++){
+      const d = new Date(today); d.setMonth(d.getMonth()+i);
+      const k = d.toISOString().slice(0,7);
+      if(!existing.has(k)) { months.push({key:k,rows:[]}); existing.add(k); }
+    }
+    return months.sort((a,b)=>a.key.localeCompare(b.key));
+  }
+  // Week mode: merge all sources + add current week + next 4
   const allKeys = new Set([
     ...perfWeeks.map(w=>w.key),
     ...smmWeeks.map(w=>w.key),
     ...prodWeeks.map(w=>w.key),
     ...centWeeks.map(w=>w.key)
   ]);
+  // Add current week and next 4 weeks
+  for(let i=0; i<=4; i++){
+    const d = new Date(today); d.setDate(d.getDate()+i*7);
+    const dk = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    allKeys.add(isoWeek(dk));
+  }
   if(!allKeys.size) return [];
   return Array.from(allKeys).sort().map(k=>{
     return perfWeeks.find(w=>w.key===k)
@@ -218,13 +245,13 @@ function getPeriodItems() {
 }
 
 function getAllDays() {
-  const dates = [...new Set([
+  const dates = new Set([
     ...perfRows.map(r=>r.date),
     ...smmRows.map(r=>r.date),
     ...prodRows.map(r=>r.date),
     ...centRows.map(r=>r.date)
-  ])].sort();
-  return dates.map(d=>({key:d, date:d, rows:null}));
+  ]);
+  return Array.from(dates).sort().map(d=>({key:d, date:d, rows:null}));
 }
 
 function getMonths() {
@@ -389,16 +416,25 @@ function renderPerf() {
     cur.rows.forEach(r=>{
       if(!r.camp_nom) return;
       const n=r.camp_nom;
-      if(!camps[n]) camps[n]={nom:n,leads:0,ca:0};
-      // If camp_leads exists use it, otherwise use row leads
-      camps[n].leads+=(+r.camp_leads||+r.leads||0);
-      camps[n].ca+=(+r.ca_acquisition||0);
+      if(!camps[n]) camps[n]={nom:n,leads:0,ca:0,budget:0};
+      camps[n].leads  += (+r.leads||0);
+      camps[n].ca     += (+r.ca_acquisition||0);
+      camps[n].budget += (+r.budget_ads||0);
     });
-    const arr=Object.values(camps);
+    const totalCA = Object.values(camps).reduce((s,x)=>s+x.ca,0);
+    const arr=Object.values(camps).filter(c=>c.leads>0||c.ca>0||c.budget>0);
     if(arr.length) {
       tbody.innerHTML=arr.map(c=>{
-        const totalLeads = Object.values(camps).reduce((s,x)=>s+x.leads,0); const campBudget = totalLeads ? Math.round(wSum(cur,'budget_ads') * c.leads / totalLeads) : 0; const cplVal = campBudget && c.leads ? Math.round(campBudget/c.leads) : 0; const cpl = cplVal ? fc(cplVal) : '-';
-        return `<tr><td>${c.nom}</td><td>${fn(c.leads)}</td><td>${cpl}</td></tr>`;
+        const roas  = c.budget>0 ? (c.ca/c.budget).toFixed(1)+'x' : '-';
+        const caPct = totalCA>0 ? Math.round(c.ca/totalCA*100)+'%' : '-';
+        return `<tr>
+          <td>${c.nom}</td>
+          <td>${fn(c.leads)}</td>
+          <td>${fc(c.budget)}</td>
+          <td>${fc(c.ca)}</td>
+          <td>${roas}</td>
+          <td>${caPct}</td>
+        </tr>`;
       }).join('');
     } else {
       tbody.innerHTML='<tr><td colspan="5"><div class="empty">Pas de donnees campagne cette semaine</div></td></tr>';
@@ -845,7 +881,7 @@ function loadDemo() {
       wIdx=Math.max(perfWeeks.length,smmWeeks.length,prodWeeks.length,centWeeks.length)-1;
       // Jump to current week
       (function(){
-        const today = new Date().toISOString().slice(0,10);
+        const today = (function(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); })();
         const todayWeek = isoWeek(today);
         const items = getPeriodItems();
         const idx = items.findIndex(function(i){return i.key===todayWeek;});
