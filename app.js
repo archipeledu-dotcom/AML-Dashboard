@@ -74,6 +74,14 @@ async function connectAll() {
     perfWeeks=buildWeeks(rP); smmWeeks=buildWeeks(rS); prodWeeks=buildWeeks(rPr); centWeeks=buildWeeks(rC);
     wIdx = Math.max(perfWeeks.length,smmWeeks.length,prodWeeks.length,centWeeks.length) - 1;
     currentPeriod='week';
+    // Jump to current week by default
+    (function(){
+      const today = new Date().toISOString().slice(0,10);
+      const todayWeek = isoWeek(today);
+      const items = getPeriodItems();
+      const idx = items.findIndex(i=>i.key===todayWeek);
+      if(idx >= 0) wIdx = idx;
+    })();
     document.getElementById('cfg').style.display = 'none';
     setStatus('live', 'Connecte ' + (rP.length+rS.length+rPr.length+rC.length) + ' lignes');
     setUptime(); renderAll();
@@ -302,7 +310,7 @@ function renderPerf() {
   }
   const lbl = currentPeriod==='day' ? 'J-1' : currentPeriod==='month' ? 'M-1' : 'S-1';
 
-  const ca=wSum(cur,'ca'), pca=wSum(prev,'ca');
+  const ca=wSum(cur,'ca_acquisition'), pca=wSum(prev,'ca_acquisition');
   const leads=wSum(cur,'leads'), pleads=wSum(prev,'leads');
   const cpl=wAvg(cur,'cpl'), pcpl=wAvg(prev,'cpl');
   const tconv=wAvg(cur,'taux_conv'), ptconv=wAvg(prev,'taux_conv');
@@ -345,7 +353,7 @@ function renderPerf() {
     chPerf=new Chart(document.getElementById('ch-perf'),{
       type:'line',
       data:{labels,datasets:[
-        {label:'CA',data:days.map(r=>r.ca||0),borderColor:'#0f6e56',backgroundColor:'rgba(15,110,86,0.07)',borderWidth:2,pointRadius:4,pointBackgroundColor:'#0f6e56',tension:0.35,fill:true,yAxisID:'y1'},
+        {label:'CA',data:days.map(r=>r.ca_acquisition||0),borderColor:'#0f6e56',backgroundColor:'rgba(15,110,86,0.07)',borderWidth:2,pointRadius:4,pointBackgroundColor:'#0f6e56',tension:0.35,fill:true,yAxisID:'y1'},
         {label:'Leads',data:days.map(r=>r.leads||0),borderColor:'#185fa5',backgroundColor:'rgba(24,95,165,0.05)',borderWidth:2,pointRadius:4,pointBackgroundColor:'#185fa5',tension:0.35,fill:true,yAxisID:'y2'}
       ]},
       options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
@@ -381,13 +389,15 @@ function renderPerf() {
     cur.rows.forEach(r=>{
       if(!r.camp_nom) return;
       const n=r.camp_nom;
-      if(!camps[n]) camps[n]={nom:n,budget:0,leads:0};
-      camps[n].leads+=(+r.camp_leads||0);
+      if(!camps[n]) camps[n]={nom:n,leads:0,ca:0};
+      // If camp_leads exists use it, otherwise use row leads
+      camps[n].leads+=(+r.camp_leads||+r.leads||0);
+      camps[n].ca+=(+r.ca_acquisition||0);
     });
     const arr=Object.values(camps);
     if(arr.length) {
       tbody.innerHTML=arr.map(c=>{
-        const cpl = c.cpl ? fc(Math.round(c.cpl)) : (c.leads ? fc(Math.round(wSum(cur,'budget_ads')/c.leads)) : '-');
+        const totalLeads = Object.values(camps).reduce((s,x)=>s+x.leads,0); const campBudget = totalLeads ? Math.round(wSum(cur,'budget_ads') * c.leads / totalLeads) : 0; const cplVal = campBudget && c.leads ? Math.round(campBudget/c.leads) : 0; const cpl = cplVal ? fc(cplVal) : '-';
         return `<tr><td>${c.nom}</td><td>${fn(c.leads)}</td><td>${cpl}</td></tr>`;
       }).join('');
     } else {
@@ -423,7 +433,7 @@ function renderPerf() {
   chPerfHist=new Chart(document.getElementById('ch-perf-hist'),{
     type:'bar',
     data:{labels:hw.map(w=>'S'+wNum(w)),datasets:[
-      {label:'CA',data:hw.map(w=>wSum(w,'ca')),backgroundColor:'rgba(15,110,86,0.75)',borderRadius:4,yAxisID:'y1'},
+      {label:'CA',data:hw.map(w=>wSum(w,'ca_acquisition')),backgroundColor:'rgba(15,110,86,0.75)',borderRadius:4,yAxisID:'y1'},
       {label:'Budget',data:hw.map(w=>wSum(w,'budget_ads')),backgroundColor:'rgba(186,117,23,0.6)',borderRadius:4,yAxisID:'y1'}
     ]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
@@ -756,7 +766,7 @@ function loadDemo() {
     return rows;
   }
   perfRows=makeRows([
-    {k:'ca',base:800,grow:80,rand:200},{k:'leads',base:12,grow:1.5,rand:5},
+    {k:'ca_acquisition',base:800,grow:80,rand:200},{k:'leads',base:12,grow:1.5,rand:5},
     {k:'cpl',base:60,grow:-1,rand:10},{k:'taux_conv',base:2,grow:0.1,rand:0.5},
     {k:'roas',base:3,grow:0.1,rand:0.5},{k:'budget_ads',base:500,grow:20,rand:80},
     {k:'trafic_site',base:800,grow:60,rand:150},
@@ -833,6 +843,14 @@ function loadDemo() {
       perfRows=rP; smmRows=rS; prodRows=rPr; centRows=rC;
       perfWeeks=buildWeeks(rP); smmWeeks=buildWeeks(rS); prodWeeks=buildWeeks(rPr); centWeeks=buildWeeks(rC);
       wIdx=Math.max(perfWeeks.length,smmWeeks.length,prodWeeks.length,centWeeks.length)-1;
+      // Jump to current week
+      (function(){
+        const today = new Date().toISOString().slice(0,10);
+        const todayWeek = isoWeek(today);
+        const items = getPeriodItems();
+        const idx = items.findIndex(function(i){return i.key===todayWeek;});
+        if(idx >= 0) wIdx = idx;
+      })();
       document.getElementById('cfg').style.display='none';
       setStatus('live','Connecte '+(rP.length+rS.length+rPr.length+rC.length)+' lignes');
       setUptime(); renderAll();
