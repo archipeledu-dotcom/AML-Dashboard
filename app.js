@@ -1,4 +1,4 @@
-/* &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; STATE &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; */
+/* ══════════ STATE ══════════ */
 let URL_PERF='', URL_SMM='', URL_PROD='', URL_CENT='';
 let TAB_PERF='performance', TAB_SMM='smm', TAB_PROD='prod', TAB_CENT='centres';
 let centRows=[], centWeeks=[];
@@ -12,7 +12,7 @@ let currentPeriod='week'; // 'day' | 'week' | 'month'
 let chPerf, chPerfHist, chSmmReach, chSmmFollow, chProdHist;
 let activeSection='perf';
 
-/* &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; JSONP FETCH &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; */
+/* ══════════ JSONP FETCH ══════════ */
 function fetchSheet(url, tab) {
   return new Promise((resolve, reject) => {
     const cb = 'cb_' + tab.replace(/\W/g,'') + '_' + Date.now();
@@ -31,7 +31,7 @@ function fetchSheet(url, tab) {
   });
 }
 
-/* &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; CONFIG TABS &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; */
+/* ══════════ CONFIG TABS ══════════ */
 function switchCfgTab(id, el) {
   document.querySelectorAll('.cfg-tab').forEach(t=>t.classList.remove('on'));
   document.querySelectorAll('.cfg-sheet-block').forEach(b=>b.classList.remove('on'));
@@ -39,7 +39,31 @@ function switchCfgTab(id, el) {
   document.getElementById('cfg-' + id).classList.add('on');
 }
 
-/* &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; CONNECT &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; */
+/* ══════════ JUMP TO LAST WEEK WITH DATA ══════════ */
+function jumpToLastDataWeek() {
+  const items = getPeriodItems();
+  if (!items.length) return;
+  // Find the last item that has actual data in any source
+  let lastWithData = -1;
+  for (let i = items.length - 1; i >= 0; i--) {
+    const item = items[i];
+    const pRows = getPerfRows(item);
+    const sRows = getSmmRows(item);
+    const prRows = getProdRows(item);
+    const cRows = getCentRows(item);
+    if (pRows.length + sRows.length + prRows.length + cRows.length > 0) {
+      lastWithData = i;
+      break;
+    }
+  }
+  if (lastWithData >= 0) {
+    wIdx = lastWithData;
+  } else {
+    wIdx = items.length - 1;
+  }
+}
+
+/* ══════════ CONNECT ══════════ */
 async function connectAll() {
   const urlP  = document.getElementById('in-url-perf').value.trim();
   const urlS  = document.getElementById('in-url-smm').value.trim();
@@ -74,14 +98,8 @@ async function connectAll() {
     perfWeeks=buildWeeks(rP); smmWeeks=buildWeeks(rS); prodWeeks=buildWeeks(rPr); centWeeks=buildWeeks(rC);
     wIdx = Math.max(perfWeeks.length,smmWeeks.length,prodWeeks.length,centWeeks.length) - 1;
     currentPeriod='week';
-    // Jump to current week by default
-    (function(){
-      const today = (function(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); })();
-      const todayWeek = isoWeek(today);
-      const items = getPeriodItems();
-      const idx = items.findIndex(i=>i.key===todayWeek);
-      if(idx >= 0) wIdx = idx;
-    })();
+    // ✅ FIX: jump to last week with actual data, not current calendar week
+    jumpToLastDataWeek();
     document.getElementById('cfg').style.display = 'none';
     setStatus('live', 'Connecte ' + (rP.length+rS.length+rPr.length+rC.length) + ' lignes');
     setUptime(); renderAll();
@@ -98,7 +116,7 @@ function openCfg() {
   document.getElementById('cfg-err').textContent = '';
 }
 
-/* &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; REFRESH &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; */
+/* ══════════ REFRESH ══════════ */
 async function doRefresh() {
   if (!URL_PERF && !URL_SMM && !URL_PROD && !URL_CENT) { loadDemo(); return; }
   const btn=document.getElementById('ref-btn'), spin=document.getElementById('spin');
@@ -113,7 +131,8 @@ async function doRefresh() {
     ]);
     perfRows=rP; smmRows=rS; prodRows=rPr; centRows=rC;
     perfWeeks=buildWeeks(rP); smmWeeks=buildWeeks(rS); prodWeeks=buildWeeks(rPr); centWeeks=buildWeeks(rC);
-    wIdx = Math.max(perfWeeks.length,smmWeeks.length,prodWeeks.length,centWeeks.length) - 1;
+    // ✅ FIX: jump to last week with actual data after refresh
+    jumpToLastDataWeek();
     setStatus('live','Connecte '+(rP.length+rS.length+rPr.length+rC.length)+' lignes');
     setUptime(); renderAll();
   } catch(e) { setStatus('err','Erreur - '+e.message); }
@@ -128,7 +147,7 @@ function setStatus(m,l){
 }
 function setUptime(){ document.getElementById('uptime').textContent='Mis a jour '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}); }
 
-/* &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; SECTION SWITCH &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; */
+/* ══════════ SECTION SWITCH ══════════ */
 function switchSection(id, el) {
   document.querySelectorAll('.stab').forEach(t=>t.classList.remove('on'));
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('on'));
@@ -138,7 +157,7 @@ function switchSection(id, el) {
   if(id==='cent') renderCentres();
 }
 
-/* &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; WEEK UTILS &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; */
+/* ══════════ WEEK UTILS ══════════ */
 function isoWeek(ds) {
   const d=new Date(ds+'T00:00:00'); const day=d.getDay()||7;
   d.setDate(d.getDate()+4-day);
@@ -157,7 +176,7 @@ function wYear(w){ return parseInt(w.key.split('-W')[0]); }
 function wDates(w) {
   const dates=w.rows.map(r=>r.date).sort();
   const fmt=d=>new Date(d+'T00:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
-  return fmt(dates[0])+' &#8211; '+fmt(dates[dates.length-1]);
+  return fmt(dates[0])+' – '+fmt(dates[dates.length-1]);
 }
 function fn(n){ return Math.round(n).toLocaleString('fr-FR'); }
 function fc(n){ return fn(n)+' DT'; }
@@ -168,12 +187,12 @@ function fd(cur,prev,lower_is_better) {
   if(p===0) return '<span class="fl">stable</span>';
   const good = lower_is_better ? p<0 : p>0;
   const sign=p>0?'+':'';
-  return good ? '<span class="up">&#8593; '+sign+p+'% vs S-1</span>' : '<span class="dn">&#8595; '+sign+p+'% vs S-1</span>';
+  return good ? '<span class="up">↑ '+sign+p+'% vs S-1</span>' : '<span class="dn">↓ '+sign+p+'% vs S-1</span>';
 }
 
 function getW(weeks, idx) { return idx>=0&&idx<weeks.length ? weeks[idx] : null; }
 
-/* &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; CHANGE WEEK &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; */
+/* ══════════ CHANGE PERIOD ══════════ */
 function changePeriod(dir) {
   const items = getPeriodItems();
   wIdx = Math.max(0, Math.min(items.length-1, wIdx+dir));
@@ -184,23 +203,14 @@ function setPeriod(p, el) {
   currentPeriod = p;
   document.querySelectorAll('.pbtn').forEach(b=>b.classList.remove('on'));
   el.classList.add('on');
-  const items = getPeriodItems();
-  if(!items.length){ wIdx=0; renderAll(); return; }
-  // Find today's period and jump to it
-  const today = (function(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); })();
-  let targetKey;
-  if(p === 'day') targetKey = today;
-  else if(p === 'week') targetKey = isoWeek(today);
-  else if(p === 'month') targetKey = today.slice(0,7);
-  const idx = items.findIndex(i=>i.key===targetKey);
-  wIdx = idx >= 0 ? idx : items.length - 1;
+  // ✅ FIX: always jump to last week with data when switching period
+  jumpToLastDataWeek();
   renderAll();
 }
 
 function getPeriodItems() {
   const today = (function(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); })();
   if (currentPeriod === 'day') {
-    // Add today and next 6 days
     const days = getAllDays();
     const existing = new Set(days.map(d=>d.key));
     for(let i=0; i<=6; i++){
@@ -213,7 +223,6 @@ function getPeriodItems() {
   if (currentPeriod === 'month') {
     const months = getMonths();
     const existing = new Set(months.map(m=>m.key));
-    // Add current month + next 3
     for(let i=0; i<=3; i++){
       const d = new Date(today); d.setMonth(d.getMonth()+i);
       const k = d.toISOString().slice(0,7);
@@ -221,19 +230,14 @@ function getPeriodItems() {
     }
     return months.sort((a,b)=>a.key.localeCompare(b.key));
   }
-  // Week mode: merge all sources + add current week + next 4
+  // Week mode: only include weeks that have actual data
   const allKeys = new Set([
     ...perfWeeks.map(w=>w.key),
     ...smmWeeks.map(w=>w.key),
     ...prodWeeks.map(w=>w.key),
     ...centWeeks.map(w=>w.key)
   ]);
-  // Add current week and next 4 weeks
-  for(let i=0; i<=4; i++){
-    const d = new Date(today); d.setDate(d.getDate()+i*7);
-    const dk = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-    allKeys.add(isoWeek(dk));
-  }
+  // ✅ FIX: do NOT add future/empty weeks — only show weeks with real data
   if(!allKeys.size) return [];
   return Array.from(allKeys).sort().map(k=>{
     return perfWeeks.find(w=>w.key===k)
@@ -265,16 +269,19 @@ function getMonths() {
 }
 
 function getPerfRows(item) {
+  if(!item) return [];
   if (currentPeriod === 'day') return perfRows.filter(r=>r.date===item.key);
   if (currentPeriod === 'month') return perfRows.filter(r=>r.date.startsWith(item.key));
   return item.rows || [];
 }
 function getSmmRows(item) {
+  if(!item) return [];
   if (currentPeriod === 'day') return smmRows.filter(r=>r.date===item.key);
   if (currentPeriod === 'month') return smmRows.filter(r=>r.date.startsWith(item.key));
   return item.rows || [];
 }
 function getProdRows(item) {
+  if(!item) return [];
   if (currentPeriod === 'day') return prodRows.filter(r=>r.date===item.key);
   if (currentPeriod === 'month') return prodRows.filter(r=>r.date.startsWith(item.key));
   return item.rows || [];
@@ -296,10 +303,11 @@ function periodLabel(item) {
 function periodSubLabel(item) {
   if (currentPeriod === 'day') return '';
   if (currentPeriod === 'month') return item.rows ? item.rows.length+' lignes' : '';
-  return wDates(item);
+  if (item.rows && item.rows.length) return wDates(item);
+  return '';
 }
 
-/* &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; RENDER ALL &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; */
+/* ══════════ RENDER ALL ══════════ */
 function renderAll() {
   const items = getPeriodItems();
   if(!items.length) return;
@@ -316,7 +324,7 @@ function renderAll() {
   renderCentres();
 }
 
-/* &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; RENDER PERF &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; */
+/* ══════════ RENDER PERF ══════════ */
 function renderPerf() {
   const items = getPeriodItems();
   const curItem = items[wIdx], prevItem = wIdx>0?items[wIdx-1]:null;
@@ -332,8 +340,8 @@ function renderPerf() {
     const good = lowerBetter ? p<0 : p>0;
     const sign=p>0?'+':'';
     return good
-      ? '<span class="kpi-cmp up">&#8593; '+sign+p+'% vs prec.</span>'
-      : '<span class="kpi-cmp dn">&#8595; '+sign+p+'% vs prec.</span>';
+      ? '<span class="kpi-cmp up">↑ '+sign+p+'% vs prec.</span>'
+      : '<span class="kpi-cmp dn">↓ '+sign+p+'% vs prec.</span>';
   }
   const lbl = currentPeriod==='day' ? 'J-1' : currentPeriod==='month' ? 'M-1' : 'S-1';
 
@@ -395,7 +403,7 @@ function renderPerf() {
   if(!prev){el.innerHTML='<div class="empty">Aucune semaine precedente.</div>';}
   else {
     const metrics=[
-      {label:'CA (&#8364;)',f:'ca',c:'#0f6e56',fmt:v=>fc(v)},
+      {label:'CA (DT)',f:'ca_acquisition',c:'#0f6e56',fmt:v=>fc(v)},
       {label:'Leads',f:'leads',c:'#185fa5',fmt:v=>fn(v)},
       {label:'Budget Ads',f:'budget_ads',c:'#ba7517',fmt:v=>fc(v)},
       {label:'Trafic site',f:'trafic_site',c:'#993556',fmt:v=>fn(v)},
@@ -405,11 +413,11 @@ function renderPerf() {
       const max=Math.max(cv,pv)||1;
       const pct=pv?Math.round((cv/pv-1)*100):0;
       const cls=pct>0?'up':pct<0?'dn':'fl';
-      return `<div class="cmp-row"><div class="cmp-hdr"><span class="cmp-name">${m.label}</span><div class="cmp-vals"><span class="cmp-prev">${m.fmt(pv)}</span><span style="font-size:9px;color:var(--hint)">&#8594;</span><span class="cmp-cur">${m.fmt(cv)}</span><span class="cmp-pct ${cls}">${pct>0?'+':''}${pct}%</span></div></div><div class="bbar"><div class="bprev" style="width:${Math.round(pv/max*100)}%"></div><div class="bcur" style="width:${Math.round(cv/max*100)}%;background:${m.c};opacity:.75"></div></div></div>`;
+      return `<div class="cmp-row"><div class="cmp-hdr"><span class="cmp-name">${m.label}</span><div class="cmp-vals"><span class="cmp-prev">${m.fmt(pv)}</span><span style="font-size:9px;color:var(--hint)">→</span><span class="cmp-cur">${m.fmt(cv)}</span><span class="cmp-pct ${cls}">${pct>0?'+':''}${pct}%</span></div></div><div class="bbar"><div class="bprev" style="width:${Math.round(pv/max*100)}%"></div><div class="bcur" style="width:${Math.round(cv/max*100)}%;background:${m.c};opacity:.75"></div></div></div>`;
     }).join('');
   }
 
-  // Camp table - on agrege par camp_nom sur la semaine
+  // Camp table
   const tbody=document.getElementById('camp-tbody');
   if(cur&&cur.rows.length) {
     const camps={};
@@ -437,7 +445,7 @@ function renderPerf() {
         </tr>`;
       }).join('');
     } else {
-      tbody.innerHTML='<tr><td colspan="5"><div class="empty">Pas de donnees campagne cette semaine</div></td></tr>';
+      tbody.innerHTML='<tr><td colspan="6"><div class="empty">Pas de donnees campagne cette semaine</div></td></tr>';
     }
   }
 
@@ -478,7 +486,7 @@ function renderPerf() {
   });
 }
 
-/* &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; RENDER SMM &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; */
+/* ══════════ RENDER SMM ══════════ */
 function renderSMM() {
   const items = getPeriodItems();
   const curItem = items[wIdx], prevItem = wIdx>0?items[wIdx-1]:null;
@@ -488,7 +496,7 @@ function renderSMM() {
   const prev = makeFakeWeek(prevRows);
   function sk(id,val,delta,ko){ document.getElementById('s-'+id).textContent=val; document.getElementById('sd-'+id).innerHTML=delta; document.getElementById('so-'+id).textContent=ko; }
 
-  function cmpB(c,p,lb){ if(!p) return ''; const pc=Math.round((c/p-1)*100); if(!pc) return '<span class="kpi-cmp fl">= stable</span>'; const g=lb?pc<0:pc>0; const s=pc>0?'+':''; return g?'<span class="kpi-cmp up">&#8593; '+s+pc+'% vs prec.</span>':'<span class="kpi-cmp dn">&#8595; '+s+pc+'% vs prec.</span>'; }
+  function cmpB(c,p,lb){ if(!p) return ''; const pc=Math.round((c/p-1)*100); if(!pc) return '<span class="kpi-cmp fl">= stable</span>'; const g=lb?pc<0:pc>0; const s=pc>0?'+':''; return g?'<span class="kpi-cmp up">↑ '+s+pc+'% vs prec.</span>':'<span class="kpi-cmp dn">↓ '+s+pc+'% vs prec.</span>'; }
   const lbl2 = currentPeriod==='day'?'J-1':currentPeriod==='month'?'M-1':'S-1';
   const reach=wSum(cur,'reach_fb')+wSum(cur,'reach_ig')+wSum(cur,'reach_li');
   const preach=prev?wSum(prev,'reach_fb')+wSum(prev,'reach_ig')+wSum(prev,'reach_li'):0;
@@ -520,7 +528,7 @@ function renderSMM() {
         <div class="canal-name" style="color:${c.color}">${c.name}</div>
         <div class="canal-val">${fn(r)}</div>
         <div class="canal-delta ${cls}" style="font-size:10px;font-family:var(--mono)">${pct>=0?'+':''}${pct}% reach</div>
-        <div class="canal-sub">Followers: ${fn(f)} . Eng: ${e.toFixed(1)}%</div>
+        <div class="canal-sub">Followers: ${fn(f)} · Eng: ${e.toFixed(1)}%</div>
       </div>`;
     }).join('');
   }
@@ -572,7 +580,7 @@ function renderSMM() {
   }).join('')+'</div>';
 }
 
-/* &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; RENDER PROD &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; */
+/* ══════════ RENDER PROD ══════════ */
 function renderProd() {
   const items = getPeriodItems();
   const curItem = items[wIdx], prevItem = wIdx>0?items[wIdx-1]:null;
@@ -582,7 +590,7 @@ function renderProd() {
   const prev = makeFakeWeek(prevRows);
   function sk(id,val,delta,ko){ document.getElementById('pr-'+id).textContent=val; document.getElementById('prd-'+id).innerHTML=delta; document.getElementById('pro-'+id).textContent=ko; }
 
-  function cmpP(c,p){ if(!p) return ''; const pc=Math.round((c/p-1)*100); if(!pc) return '<span class="kpi-cmp fl">= stable</span>'; return pc>0?'<span class="kpi-cmp up">&#8593; +'+pc+'% vs prec.</span>':'<span class="kpi-cmp dn">&#8595; '+pc+'% vs prec.</span>'; }
+  function cmpP(c,p){ if(!p) return ''; const pc=Math.round((c/p-1)*100); if(!pc) return '<span class="kpi-cmp fl">= stable</span>'; return pc>0?'<span class="kpi-cmp up">↑ +'+pc+'% vs prec.</span>':'<span class="kpi-cmp dn">↓ '+pc+'% vs prec.</span>'; }
   const lbl3 = currentPeriod==='day'?'J-1':currentPeriod==='month'?'M-1':'S-1';
   const creas=wSum(cur,'creas_produites'), pcreas=wSum(prev,'creas_produites');
   const modifs=wSum(cur,'modifs'), pmodifs=wSum(prev,'modifs');
@@ -618,7 +626,7 @@ function renderProd() {
       const max=Math.max(cv,pv)||1;
       const pct=pv?Math.round((cv/pv-1)*100):0;
       const cls=pct>0?'up':pct<0?'dn':'fl';
-      return `<div class="cmp-row"><div class="cmp-hdr"><span class="cmp-name">${m.label}</span><div class="cmp-vals"><span class="cmp-prev">${fn(pv)}</span><span style="font-size:9px;color:var(--hint)">&#8594;</span><span class="cmp-cur">${fn(cv)}</span><span class="cmp-pct ${cls}">${pct>0?'+':''}${pct}%</span></div></div><div class="bbar"><div class="bprev" style="width:${Math.round(pv/max*100)}%"></div><div class="bcur" style="width:${Math.round(cv/max*100)}%;background:${m.c};opacity:.75"></div></div></div>`;
+      return `<div class="cmp-row"><div class="cmp-hdr"><span class="cmp-name">${m.label}</span><div class="cmp-vals"><span class="cmp-prev">${fn(pv)}</span><span style="font-size:9px;color:var(--hint)">→</span><span class="cmp-cur">${fn(cv)}</span><span class="cmp-pct ${cls}">${pct>0?'+':''}${pct}%</span></div></div><div class="bbar"><div class="bprev" style="width:${Math.round(pv/max*100)}%"></div><div class="bcur" style="width:${Math.round(cv/max*100)}%;background:${m.c};opacity:.75"></div></div></div>`;
     }).join('');
   }
 
@@ -642,8 +650,7 @@ function getCentRows(item) {
   if(!item) return [];
   if(currentPeriod === 'day') return centRows.filter(r=>r.date===item.key);
   if(currentPeriod === 'month') return centRows.filter(r=>r.date&&r.date.startsWith(item.key));
-  // For week: get the week key and match centRows by same iso week
-  const itemWeekKey = item.key; // format YYYY-Www
+  const itemWeekKey = item.key;
   return centRows.filter(r=>r.date&&isoWeek(r.date)===itemWeekKey);
 }
 
@@ -655,7 +662,7 @@ function renderCentres() {
   const pRows = prevItem ? getCentRows(prevItem) : [];
 
   function cSum(rows, f){ return rows.reduce((s,r)=>s+(+r[f]||0),0); }
-  function cmpC(c,p){ if(!p) return ''; const pc=Math.round((c/p-1)*100); if(!pc) return '<span class="kpi-cmp fl">= stable</span>'; return pc>0?'<span class="kpi-cmp up">&#8593; +'+pc+'% vs prec.</span>':'<span class="kpi-cmp dn">&#8595; '+pc+'% vs prec.</span>'; }
+  function cmpC(c,p){ if(!p) return ''; const pc=Math.round((c/p-1)*100); if(!pc) return '<span class="kpi-cmp fl">= stable</span>'; return pc>0?'<span class="kpi-cmp up">↑ +'+pc+'% vs prec.</span>':'<span class="kpi-cmp dn">↓ '+pc+'% vs prec.</span>'; }
   function sk(id,val,delta,ko){ document.getElementById('ct-'+id).textContent=val; document.getElementById('ctd-'+id).innerHTML=delta; document.getElementById('cto-'+id).textContent=ko; }
   const lbl = currentPeriod==='day'?'J-1':currentPeriod==='month'?'M-1':'S-1';
 
@@ -666,10 +673,6 @@ function renderCentres() {
   const ca    = cSum(cRows,'paiement_total'),         pca   = cSum(pRows,'paiement_total');
   const leads = tel + preinsc + insc;
   const pleads= ptel + ppreinsc + pinsc;
-  // Budget centre vient du fichier Performance Online (rempli par le Growth)
-  function pSum(rows,f){ return rows.reduce((s,r)=>s+(+r[f]||0),0); }
-  const perfCurRows  = getPerfRows(curItem||{key:''});
-  const perfPrevRows = prevItem ? getPerfRows(prevItem) : [];
   const budget  = 0;
   const pbudget = 0;
   const cpl   = leads ? Math.round((budget||ca)/leads) : 0;
@@ -686,7 +689,6 @@ function renderCentres() {
   sk('cpl',   fc(cpl),              cmpC(cpl,pcpl,true),   pRows.length?lbl+' : '+fc(pcpl):'');
   sk('tconv', tconv.toFixed(1)+'%', cmpC(tconv,ptconv),   pRows.length?lbl+' : '+ptconv.toFixed(1)+'%':'');
 
-  // Budget, ROAS, CA/lead from perf file
   function skc(id,val,delta,ko){ 
     var v=document.getElementById('ct-'+id); if(v) v.textContent=val;
     var d=document.getElementById('ctd-'+id); if(d) d.innerHTML=delta;
@@ -700,7 +702,7 @@ function renderCentres() {
   skc('roas', roas_c, cmpC(budget>0?ca/budget:0, pbudget>0?pca/pbudget:0), pRows.length?lbl+' : '+pRoas_c:'');
   skc('calead', calead, '', pRows.length?lbl+' : '+pCalead:'');
 
-  document.getElementById('ct-total-badge').textContent = fn(leads)+' leads . '+fc(ca);
+  document.getElementById('ct-total-badge').textContent = fn(leads)+' leads · '+fc(ca);
 
   // Table par centre
   const tbody = document.getElementById('centres-tbody');
@@ -727,7 +729,6 @@ function renderCentres() {
         <td>${fc(d.ca)}</td><td>${tconv_c}</td>
       </tr>`;
     }).join('');
-    // Total row
     tbody.innerHTML += `<tr style="border-top:1px solid var(--border);font-weight:700">
       <td style="color:var(--txt)">Total</td>
       <td>${fn(tel)}</td><td>${fn(preinsc)}</td>
@@ -735,7 +736,7 @@ function renderCentres() {
       <td>${fc(ca)}</td><td>${tconv.toFixed(1)}%</td>
     </tr>`;
   } else {
-    tbody.innerHTML='<tr><td colspan="7"><div class="empty">Aucune donnee - centRows: '+centRows.length+' lignes chargees | semaine: '+(curItem&&curItem.key)+'</div></td></tr>';
+    tbody.innerHTML='<tr><td colspan="7"><div class="empty">Aucune donnee — semaine : '+(curItem&&curItem.key)+'</div></td></tr>';
   }
 
   // Comparison S vs S-1
@@ -752,7 +753,7 @@ function renderCentres() {
       const max=Math.max(m.cv,m.pv)||1;
       const pct=m.pv?Math.round((m.cv/m.pv-1)*100):0;
       const cls=pct>0?'up':pct<0?'dn':'fl';
-      return `<div class="cmp-row"><div class="cmp-hdr"><span class="cmp-name">${m.label}</span><div class="cmp-vals"><span class="cmp-prev">${fn(m.pv)}</span><span style="font-size:9px;color:var(--hint)">&#8594;</span><span class="cmp-cur">${fn(m.cv)}</span><span class="cmp-pct ${cls}">${pct>0?'+':''}${pct}%</span></div></div><div class="bbar"><div class="bprev" style="width:${Math.round(m.pv/max*100)}%"></div><div class="bcur" style="width:${Math.round(m.cv/max*100)}%;background:${m.c};opacity:.8"></div></div></div>`;
+      return `<div class="cmp-row"><div class="cmp-hdr"><span class="cmp-name">${m.label}</span><div class="cmp-vals"><span class="cmp-prev">${fn(m.pv)}</span><span style="font-size:9px;color:var(--hint)">→</span><span class="cmp-cur">${fn(m.cv)}</span><span class="cmp-pct ${cls}">${pct>0?'+':''}${pct}%</span></div></div><div class="bbar"><div class="bprev" style="width:${Math.round(m.pv/max*100)}%"></div><div class="bcur" style="width:${Math.round(m.cv/max*100)}%;background:${m.c};opacity:.8"></div></div></div>`;
     }).join('');
   }
 
@@ -771,7 +772,7 @@ function renderCentres() {
               y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#bbb',font:{size:10,family:'Courier New'}}}}}
   });
 
-  // Chart tendance 8 semaines contacts totaux - utilise les semaines de perfWeeks comme reference
+  // Chart tendance 8 semaines
   const refW = (perfWeeks.length ? perfWeeks : smmWeeks).slice(-8);
   const histData = refW.map(w=>{
     const wr = centRows.filter(r=>r.date&&isoWeek(r.date)===w.key);
@@ -845,10 +846,12 @@ function loadDemo() {
   centWeeks=buildWeeks(centRows);
   URL_PERF='DEMO'; URL_SMM='DEMO'; URL_PROD='DEMO'; URL_CENT='DEMO';
   document.getElementById('cfg').style.display='none';
+  // ✅ FIX: jump to last week with data in demo mode too
+  jumpToLastDataWeek();
   setStatus('demo','Mode demo'); setUptime(); renderAll();
 }
 
-/* &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; INIT &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; */
+/* ══════════ INIT ══════════ */
 (async function(){
   const uP  = localStorage.getItem('archi_url_perf') || '';
   const uS  = localStorage.getItem('archi_url_smm')  || '';
@@ -879,14 +882,8 @@ function loadDemo() {
       perfRows=rP; smmRows=rS; prodRows=rPr; centRows=rC;
       perfWeeks=buildWeeks(rP); smmWeeks=buildWeeks(rS); prodWeeks=buildWeeks(rPr); centWeeks=buildWeeks(rC);
       wIdx=Math.max(perfWeeks.length,smmWeeks.length,prodWeeks.length,centWeeks.length)-1;
-      // Jump to current week
-      (function(){
-        const today = (function(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); })();
-        const todayWeek = isoWeek(today);
-        const items = getPeriodItems();
-        const idx = items.findIndex(function(i){return i.key===todayWeek;});
-        if(idx >= 0) wIdx = idx;
-      })();
+      // ✅ FIX: jump to last week with actual data
+      jumpToLastDataWeek();
       document.getElementById('cfg').style.display='none';
       setStatus('live','Connecte '+(rP.length+rS.length+rPr.length+rC.length)+' lignes');
       setUptime(); renderAll();
